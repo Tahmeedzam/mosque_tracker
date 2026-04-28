@@ -1,0 +1,2813 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-04-27T05:46:45Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+    {
+      "type": "node",
+      "id": 414603977,
+      "lat": 19.198402,
+      "lon": 72.9703033,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Nuri Baba Darga",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 605222669,
+      "lat": 18.9427438,
+      "lon": 72.8272693,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Gol Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 674769829,
+      "lat": 18.9828229,
+      "lon": 72.8089926,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "हाजी अली दर्गा",
+        "name:en": "Haji Ali Dargah",
+        "name:hi": "हाजी अली दरगाह",
+        "phone": "+91-22-2352-9082",
+        "religion": "muslim",
+        "website": "https://www.hajialidargah.in/",
+        "wikidata": "Q542756",
+        "wikimedia_commons": "Category:Haji Ali Dargah",
+        "wikipedia": "en:Haji Ali Dargah"
+      }
+    },
+    {
+      "type": "node",
+      "id": 771136777,
+      "lat": 18.9874184,
+      "lon": 72.8114617,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Maa Hajjani Masjid and Dargah",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 858463543,
+      "lat": 18.9553242,
+      "lon": 72.8310417,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Kazi Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 858606552,
+      "lat": 18.9574653,
+      "lon": 72.8365671,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Masjid",
+        "religion": "muslim",
+        "source": "GPS"
+      }
+    },
+    {
+      "type": "node",
+      "id": 858668418,
+      "lat": 18.9544601,
+      "lon": 72.8350129,
+      "tags": {
+        "amenity": "place_of_worship",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 860271204,
+      "lat": 18.9593695,
+      "lon": 72.8280732,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Dhakhni Mohalla Masjid",
+        "religion": "muslim",
+        "source": "GPS"
+      }
+    },
+    {
+      "type": "node",
+      "id": 861219171,
+      "lat": 18.9652609,
+      "lon": 72.8317756,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Dawni Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 861219177,
+      "lat": 18.9635614,
+      "lon": 72.8293294,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Choti Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 861219218,
+      "lat": 18.964215,
+      "lon": 72.8293279,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 1033625162,
+      "lat": 18.9572985,
+      "lon": 72.8364554,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Sayyed Ashiq Shah Bukhari Dargah Masjid",
+        "religion": "muslim",
+        "source": "GPS"
+      }
+    },
+    {
+      "type": "node",
+      "id": 1033625169,
+      "lat": 18.9565679,
+      "lon": 72.8363803,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Khoja Jama Masjid",
+        "religion": "muslim",
+        "wpt_symbol": "Flag, Red"
+      }
+    },
+    {
+      "type": "node",
+      "id": 1127817574,
+      "lat": 18.9420804,
+      "lon": 72.8272524,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Syed Qadar Shah Vali",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2246472103,
+      "lat": 19.0672846,
+      "lon": 72.8827596,
+      "tags": {
+        "addr:city": "mumbai",
+        "addr:housenumber": "1",
+        "addr:postcode": "400024",
+        "addr:street": "railway Colony Road",
+        "amenity": "place_of_worship",
+        "denomination": "sunni",
+        "name": "fhatak majid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2567620985,
+      "lat": 19.038208,
+      "lon": 72.9208801,
+      "tags": {
+        "amenity": "place_of_worship",
+        "check_date": "2024-04-08",
+        "name": "Anushaktinagar Mosque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2930709937,
+      "lat": 19.0393285,
+      "lon": 72.9487422,
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:postcode": "400088",
+        "addr:street": "Cheeta Camp Market Road",
+        "amenity": "place_of_worship",
+        "name": "Kerala Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2981312585,
+      "lat": 19.0654884,
+      "lon": 72.898421,
+      "tags": {
+        "amenity": "place_of_worship",
+        "denomination": "sunni",
+        "name": "Noori Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3125255004,
+      "lat": 19.0404743,
+      "lon": 72.9490842,
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:postcode": "400088",
+        "addr:street": "M G Ramchandran Marg",
+        "amenity": "place_of_worship",
+        "name": "Meraj Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3204283861,
+      "lat": 19.0669983,
+      "lon": 72.9227436,
+      "tags": {
+        "addr:city": "MUMBAI",
+        "addr:postcode": "400043",
+        "addr:street": "Road Number 3",
+        "amenity": "place_of_worship",
+        "description": "PLOT NO 27/K/32 SHIVAJI NAGAR GOVANDI MUMBAI 43",
+        "fixme": "incorrect addr:housenumber information moved to description for now",
+        "name": "Shaikh Saba Class",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3204454172,
+      "lat": 19.0358948,
+      "lon": 72.9507399,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "gulshane madina masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3204526990,
+      "lat": 19.0704679,
+      "lon": 72.9215294,
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:postcode": "400043",
+        "amenity": "place_of_worship",
+        "description": "rafeek nager shivaji nager Govandi Mumbai 43",
+        "fixme": "incorrect addr:housenumber information moved to description for now",
+        "name": "Gazi Masgid",
+        "note": "sunni masjid madarsa Rahmaniya Rasool teach poor people at fee of coast all money and salary and expenses depend upon weekly chanda 50 to 100 child study her have a nice waju khana istenja khana and have a two floor",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3205933255,
+      "lat": 19.0635029,
+      "lon": 72.9220329,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "kokan mazjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3205963993,
+      "lat": 19.068001,
+      "lon": 72.9212848,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "noorya bakaiya madarsa",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3206017477,
+      "lat": 19.0688943,
+      "lon": 72.9205041,
+      "tags": {
+        "addr:city": "Mumbai",
+        "amenity": "place_of_worship",
+        "description": "rafeek nager shivaji nager Govandi Mumbai 400043",
+        "fixme": "incorrect addr:housenumber information moved to description for now",
+        "name": "Faiz-ul-Rasool Masjid",
+        "note": "madarsa and masjid have three flour 2nice waju khana all facility of arabic teacher poor people child get study about islaam and lern read quraan",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3206031134,
+      "lat": 19.0696832,
+      "lon": 72.9207538,
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:street": "Madarase bahiste zehra s.a (shia imambada)",
+        "amenity": "place_of_worship",
+        "description": "rafeek nager shivaji nager govandi Mumbai 400043",
+        "fixme": "incorrect addr:housenumber information moved to description for now",
+        "name": "Bismillah Masjid",
+        "note": "bismillah masjid organised MADERSA GAUSULWARA and teach arabic in madarsa, have a nice waju khana having two floors teach arabic to poor people children quraan and get knowledge about islaam",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3206045671,
+      "lat": 19.0713741,
+      "lon": 72.9210037,
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:housenumber": "rafeek nager Shivaji nager Govandi Mumbai 400043",
+        "addr:street": "kurla",
+        "amenity": "place_of_worship",
+        "name": "Bab-e-Rahmat Masjid",
+        "note": "masjid and madersa having two floor teach poor people children give him knowledge about quoraan or islaam teach quraan",
+        "phone": "9821389460",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3213784370,
+      "lat": 19.0679794,
+      "lon": 72.9227615,
+      "tags": {
+        "addr:city": "MUMBAI",
+        "addr:postcode": "400043",
+        "addr:street": "Road Number 2",
+        "amenity": "place_of_worship",
+        "name": "chishtiya masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3213826472,
+      "lat": 19.0657111,
+      "lon": 72.9232315,
+      "tags": {
+        "addr:city": "MUMBAI",
+        "addr:housenumber": "4",
+        "addr:postcode": "400043",
+        "addr:street": "video road",
+        "amenity": "place_of_worship",
+        "denomination": "sunni",
+        "name": "Ummul Qura",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3213872399,
+      "lat": 19.0373938,
+      "lon": 72.9507958,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "sunni islamiya masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3213896136,
+      "lat": 19.0610845,
+      "lon": 72.9040856,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "shahid siddque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3213922166,
+      "lat": 19.0623798,
+      "lon": 72.9043817,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Nurani Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3215544599,
+      "lat": 19.0595597,
+      "lon": 72.9248683,
+      "tags": {
+        "addr:city": "mumbai",
+        "addr:postcode": "400043",
+        "amenity": "place_of_worship",
+        "denomination": "sunni",
+        "name": "Raza Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3215560186,
+      "lat": 19.0644885,
+      "lon": 72.8999248,
+      "tags": {
+        "addr:city": "MUMBAI",
+        "addr:housenumber": "near manjonees cake shopm",
+        "addr:postcode": "400089",
+        "addr:street": "P.L. Lokhande Marg",
+        "amenity": "place_of_worship",
+        "denomination": "sufi",
+        "name": "Gulshan Baug",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3215575378,
+      "lat": 19.1049572,
+      "lon": 72.8935038,
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:postcode": "4000072",
+        "addr:street": "Saki Naka",
+        "amenity": "place_of_worship",
+        "name": "Shia Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3215614231,
+      "lat": 19.0655034,
+      "lon": 72.9222858,
+      "tags": {
+        "addr:city": "MUMBAI",
+        "addr:housenumber": "14",
+        "addr:postcode": "400043",
+        "addr:street": "Road Number 3",
+        "amenity": "place_of_worship",
+        "denomination": "sunni",
+        "name": "HARI MASJID",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3217102511,
+      "lat": 19.0627876,
+      "lon": 72.9054247,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Masjid",
+        "name:ar": "مسجد",
+        "name:azb": "مسجد",
+        "name:ks": "مسجد",
+        "name:ur": "مسجد",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3289566679,
+      "lat": 19.0788975,
+      "lon": 72.8830198,
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:postcode": "400070",
+        "addr:street": "New Hall Road",
+        "amenity": "place_of_worship",
+        "name": "Rehmaniya Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3289566680,
+      "lat": 19.0784576,
+      "lon": 72.8818312,
+      "tags": {
+        "amenity": "place_of_worship",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3289569412,
+      "lat": 19.0766823,
+      "lon": 72.8774747,
+      "tags": {
+        "addr:street": "LBS Marg",
+        "amenity": "place_of_worship",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3289569716,
+      "lat": 19.0732669,
+      "lon": 72.8740501,
+      "tags": {
+        "amenity": "place_of_worship",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3289569918,
+      "lat": 19.0727919,
+      "lon": 72.8735248,
+      "tags": {
+        "amenity": "place_of_worship",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3289569978,
+      "lat": 19.0745758,
+      "lon": 72.872275,
+      "tags": {
+        "amenity": "place_of_worship",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3289573514,
+      "lat": 19.0758031,
+      "lon": 72.8709588,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Umar Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3289574361,
+      "lat": 19.0779269,
+      "lon": 72.8795218,
+      "tags": {
+        "amenity": "place_of_worship",
+        "denomination": "sunni",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3289575050,
+      "lat": 19.0774337,
+      "lon": 72.8653136,
+      "tags": {
+        "amenity": "place_of_worship",
+        "check_date": "2026-03-21",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3289580678,
+      "lat": 19.0704867,
+      "lon": 72.8801663,
+      "tags": {
+        "amenity": "place_of_worship",
+        "denomination": "muslimss",
+        "name": "markaz masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3529565705,
+      "lat": 19.062237,
+      "lon": 72.8766764,
+      "tags": {
+        "addr:city": "MUMBAI",
+        "addr:postcode": "400070",
+        "addr:street": "A H Wadia Marg",
+        "amenity": "place_of_worship",
+        "name": "QURESHI MASJID",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3534649039,
+      "lat": 19.0629391,
+      "lon": 72.922207,
+      "tags": {
+        "addr:city": "mumbai",
+        "addr:postcode": "400043",
+        "amenity": "place_of_worship",
+        "name": "madina",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3984006048,
+      "lat": 19.1256493,
+      "lon": 72.822509,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Masjid Talimul Quran",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 4575714770,
+      "lat": 19.0530505,
+      "lon": 72.8324071,
+      "tags": {
+        "amenity": "place_of_worship",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 4659330131,
+      "lat": 19.2935596,
+      "lon": 72.8903763,
+      "tags": {
+        "addr:street": "Ghodbunder Fort Road",
+        "amenity": "place_of_worship",
+        "name": "Khoja Jamat Khana",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5456874524,
+      "lat": 19.0915796,
+      "lon": 72.9079997,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name:en": "Tahera Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5859107293,
+      "lat": 19.1623709,
+      "lon": 72.9353624,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name:en": "Ahle e Hadis Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 5907305549,
+      "lat": 18.9997394,
+      "lon": 72.9126978,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Pir Pau Dargah",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 6534526403,
+      "lat": 19.042082,
+      "lon": 72.8622187,
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:housenumber": "87",
+        "addr:postcode": "400022",
+        "addr:street": "Jain Mandir Road",
+        "amenity": "place_of_worship",
+        "check_date": "2026-03-20",
+        "denomination": "sunni",
+        "name": "Sunni masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 7056928510,
+      "lat": 18.954378,
+      "lon": 72.8310272,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Khatri Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 7057066899,
+      "lat": 19.0169059,
+      "lon": 72.8190344,
+      "tags": {
+        "amenity": "place_of_worship",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 7912838728,
+      "lat": 19.1188704,
+      "lon": 72.8381499,
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:housenumber": "Area No.4",
+        "addr:postcode": "400058",
+        "addr:street": "Juhu Lane",
+        "amenity": "place_of_worship",
+        "denomination": "sunni",
+        "religion": "muslim",
+        "service_times": "Any Time"
+      }
+    },
+    {
+      "type": "node",
+      "id": 9132888459,
+      "lat": 19.1284549,
+      "lon": 72.8286996,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Andheri Muslim Qabrastan Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 9300003164,
+      "lat": 19.1442853,
+      "lon": 72.8362537,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Noor Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 10101434119,
+      "lat": 18.9811536,
+      "lon": 72.8214157,
+      "tags": {
+        "addr:postcode": "400034",
+        "amenity": "place_of_worship",
+        "name": "Racecourse Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 10196589526,
+      "lat": 19.283875,
+      "lon": 72.786495,
+      "tags": {
+        "addr:city": "Uttan",
+        "addr:housenumber": "2",
+        "addr:postcode": "401107",
+        "addr:street": "Church Road",
+        "amenity": "place_of_worship",
+        "denomination": "sunni",
+        "name": "UTTAN SUNNAT JAMAT MASJID",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 10196906508,
+      "lat": 19.2821522,
+      "lon": 72.784975,
+      "tags": {
+        "addr:city": "Uttan",
+        "addr:housenumber": "down to earth ground floor",
+        "addr:postcode": "401107",
+        "addr:street": "uttan naka road",
+        "amenity": "place_of_worship",
+        "denomination": "sunni",
+        "name": "kabarsatan and dargha (Fusion)",
+        "religion": "muslim",
+        "service_times": "unlimited"
+      }
+    },
+    {
+      "type": "node",
+      "id": 10595404365,
+      "lat": 19.0551094,
+      "lon": 72.9140532,
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:housenumber": "123413456",
+        "addr:postcode": "400088",
+        "addr:street": "Deonar Road",
+        "amenity": "place_of_worship",
+        "denomination": "sunni",
+        "name": "hari masjid",
+        "religion": "muslim",
+        "service_times": "4 to 10"
+      }
+    },
+    {
+      "type": "node",
+      "id": 11430465716,
+      "lat": 19.2095964,
+      "lon": 72.8801245,
+      "tags": {
+        "amenity": "place_of_worship",
+        "denomination": "sunni",
+        "name": "babri masjid",
+        "power": "switch",
+        "religion": "muslim",
+        "service_times": "21:00-23:00"
+      }
+    },
+    {
+      "type": "node",
+      "id": 11549945737,
+      "lat": 18.9295703,
+      "lon": 72.8316916,
+      "tags": {
+        "air_conditioning": "yes",
+        "amenity": "place_of_worship",
+        "check_date": "2026-03-12",
+        "denomination": "sunni",
+        "name": "Allana Center Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12556827190,
+      "lat": 18.9646446,
+      "lon": 72.8399676,
+      "tags": {
+        "amenity": "place_of_worship",
+        "denomination": "sunni",
+        "name": "mosque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12564732273,
+      "lat": 18.963711,
+      "lon": 72.8212023,
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:district": "maharashtra",
+        "addr:housenumber": "81",
+        "addr:postcode": "400008",
+        "addr:street": "pathe baourao marg",
+        "amenity": "place_of_worship",
+        "denomination": "sunni",
+        "name": "murga  giran",
+        "opening_hours": "24/7",
+        "religion": "muslim",
+        "service_times": "prayer"
+      }
+    },
+    {
+      "type": "node",
+      "id": 12700673018,
+      "lat": 19.0700347,
+      "lon": 72.9205987,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Rafiq Nagar Shia Imambada",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13352643750,
+      "lat": 19.1426201,
+      "lon": 72.8360713,
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:district": "Mumbai",
+        "addr:postcode": "400102",
+        "addr:street": "Behind New Ujala SRA, Behram Baug, Jogeshwari W",
+        "air_conditioning": "yes",
+        "amenity": "place_of_worship",
+        "denomination": "sunni",
+        "latitude": "19.142002254237404",
+        "longitude": "72.83591111240897",
+        "name": "Badar Masjid",
+        "name:hi": "बदर मस्जिद",
+        "religion": "muslim",
+        "wheelchair": "yes"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13382511526,
+      "lat": 18.9716889,
+      "lon": 72.8235313,
+      "tags": {
+        "addr:city": "Mumbai Central",
+        "addr:district": "Mumbai City",
+        "addr:housenumber": "Al-Haq Building, 17",
+        "addr:postcode": "400008",
+        "addr:street": "YMCA Road",
+        "amenity": "place_of_worship",
+        "check_date": "2026-03-20",
+        "denomination": "ahmadiyya",
+        "name": "احمدیہ مسجد",
+        "name:en": "Ahmadiyya Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "node",
+      "id": 13610946207,
+      "lat": 19.1732346,
+      "lon": 72.932621,
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Hazrat Sayyed Allauddin Shah Dargah",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 48741850,
+      "center": {
+        "lat": 18.9828138,
+        "lon": 72.8089875
+      },
+      "nodes": [618646162, 618646164, 618646168, 618646171, 618646162],
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:country": "IN",
+        "addr:state": "Maharashtra",
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "name": "Haji Ali",
+        "opening_hours": "Mo-Su 08:00-22:00",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 48809212,
+      "center": {
+        "lat": 18.9631564,
+        "lon": 72.8233373
+      },
+      "nodes": [619280841, 619280848, 619280856, 619280859, 619280841],
+      "tags": {
+        "addr:city": "Mumbai",
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "Arab Lane Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 48809455,
+      "center": {
+        "lat": 18.9624582,
+        "lon": 72.8248166
+      },
+      "nodes": [
+        619289285, 619289288, 619289293, 619289294, 13362996439, 13362996438,
+        619289285
+      ],
+      "tags": {
+        "addr:city": "Mumbai",
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "Chhota Sonapur Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 53355635,
+      "center": {
+        "lat": 18.9827493,
+        "lon": 72.8088762
+      },
+      "nodes": [
+        674769828, 674769831, 674769811, 674769816, 674769805, 674769808,
+        674769832, 674769803, 674769828
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Haji Ali",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 72531981,
+      "center": {
+        "lat": 18.9604274,
+        "lon": 72.8344381
+      },
+      "nodes": [861060255, 861060257, 861060259, 861060261, 861060255],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "Imamiya Masjid",
+        "religion": "muslim",
+        "source": "Yahoo"
+      }
+    },
+    {
+      "type": "way",
+      "id": 72531982,
+      "center": {
+        "lat": 18.9588989,
+        "lon": 72.8338494
+      },
+      "nodes": [861060270, 861060272, 861060274, 861060277, 861060270],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "Shirazi Mosque",
+        "religion": "muslim",
+        "source": "Yahoo",
+        "url": "http://shah-ast-hussain.com/2008/03/13/moghul-masjid-flipside-of-photography/"
+      }
+    },
+    {
+      "type": "way",
+      "id": 72545869,
+      "center": {
+        "lat": 18.9597925,
+        "lon": 72.8329765
+      },
+      "nodes": [861155664, 861155667, 861155670, 861155674, 861155664],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "Piru Lane Masjid",
+        "religion": "muslim",
+        "source": "Yahoo"
+      }
+    },
+    {
+      "type": "way",
+      "id": 72571107,
+      "center": {
+        "lat": 18.9589433,
+        "lon": 72.8309928
+      },
+      "nodes": [
+        13368732609, 13368732610, 861384201, 861384202, 861384204, 6805015368,
+        13368732609
+      ],
+      "tags": {
+        "addr:city": "Mumbai",
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "denomination": "shia",
+        "name": "Raudat Tahera",
+        "religion": "muslim",
+        "source": "Yahoo"
+      }
+    },
+    {
+      "type": "way",
+      "id": 89124826,
+      "center": {
+        "lat": 18.9490514,
+        "lon": 72.8322443
+      },
+      "nodes": [1033848445, 1033848446, 1033848453, 1033848456, 1033848445],
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:postcode": "400002",
+        "addr:street": "Janjiker Street",
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "denomination": "sunni",
+        "name": "Juma Masjid",
+        "religion": "muslim",
+        "source": "Yahoo",
+        "website": "https://www.jumamasjid.org/"
+      }
+    },
+    {
+      "type": "way",
+      "id": 146468968,
+      "center": {
+        "lat": 18.9587146,
+        "lon": 72.8304185
+      },
+      "nodes": [1597607923, 1597607896, 1597607927, 1597607883, 1597607923],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "name": "Saifee Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 150363473,
+      "center": {
+        "lat": 19.0193262,
+        "lon": 72.8407963
+      },
+      "nodes": [
+        1632862108, 1632862114, 1632862113, 1646548636, 1646548637, 1646548657,
+        1632862103, 1632862105, 1632862107, 1632862108
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "name": "Pir Baghdadi Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 152245169,
+      "center": {
+        "lat": 19.0249696,
+        "lon": 72.8651383
+      },
+      "nodes": [
+        1650716614, 1650716609, 1650716610, 1650716608, 1650716607, 1650716612,
+        1650716613, 1650716616, 1650716615, 1650716614
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "landuse": "religious",
+        "name": "Haji Ismail Haji Allana Sanatorium",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 202660313,
+      "center": {
+        "lat": 19.152475,
+        "lon": 72.8273953
+      },
+      "nodes": [
+        2126250442, 2126250463, 2126250461, 2126250449, 2126250447, 2126250383,
+        2126250381, 10879528582, 2126250442
+      ],
+      "tags": {
+        "building": "mosque"
+      }
+    },
+    {
+      "type": "way",
+      "id": 202918262,
+      "center": {
+        "lat": 19.0517779,
+        "lon": 72.8385854
+      },
+      "nodes": [2128601579, 2128601580, 2128601583, 2128601584, 2128601579],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "Jama Masjid",
+        "name:en": "Jama Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 207538305,
+      "center": {
+        "lat": 18.9545682,
+        "lon": 72.8362586
+      },
+      "nodes": [
+        2177958588, 2177958592, 2177958593, 2177958590, 2177958585, 2177958588
+      ],
+      "tags": {
+        "addr:city": "Mumbai",
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "Khoja Sunnat Jamat Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 207538306,
+      "center": {
+        "lat": 18.9546627,
+        "lon": 72.8337345
+      },
+      "nodes": [2177958597, 2177958596, 2177958586, 2177958589, 2177958597],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "name": "Masjid",
+        "religion": "muslim",
+        "source": "GPS"
+      }
+    },
+    {
+      "type": "way",
+      "id": 207538307,
+      "center": {
+        "lat": 18.9545033,
+        "lon": 72.8332495
+      },
+      "nodes": [
+        2177958572, 2177958565, 2177958595, 2177958594, 2177958591, 2177958575,
+        2177958572
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "denomination": "sunni",
+        "name": "Minara Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 207538309,
+      "center": {
+        "lat": 18.953277,
+        "lon": 72.8346184
+      },
+      "nodes": [
+        2177958540, 2177958545, 2177958549, 2177958556, 2177958551, 2177958555,
+        2177958554, 2177958561, 2177958558, 2177958557, 2177958541, 2177958540
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "name": "Zakaria Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 207556891,
+      "center": {
+        "lat": 18.9571548,
+        "lon": 72.8327637
+      },
+      "nodes": [
+        2178176355, 2178176356, 2178176353, 2178176352, 2178176350, 2178176351,
+        2178176354, 2178176355
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Murgimohalla Masjid",
+        "religion": "muslim",
+        "source": "GPS"
+      }
+    },
+    {
+      "type": "way",
+      "id": 249897555,
+      "center": {
+        "lat": 19.1493163,
+        "lon": 72.8348441
+      },
+      "nodes": [
+        2564343944, 2564343823, 2564343831, 2564344150, 2564344202, 2564343893,
+        2564343958, 2564343837, 2564343939, 2564343944
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "building:levels": "6",
+        "denomination": "sunni",
+        "name": "Sunni Madina Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 251508381,
+      "center": {
+        "lat": 19.1348152,
+        "lon": 72.7819961
+      },
+      "nodes": [2577194099, 2577194100, 2577194101, 2577194102, 2577194099],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "Hazrat Nizamuddin Hussain Shah Bagdadi Rahmatullah Alaih Mosque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 255363748,
+      "center": {
+        "lat": 19.0525415,
+        "lon": 72.8228324
+      },
+      "nodes": [
+        2610566273, 2610566161, 2610566151, 2610566028, 2610566044, 2610566027,
+        2610566035, 2610566017, 2610566273
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "denomination": "ismaili",
+        "name": "Shia Imami Ismaili Jamatkhana",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 255369858,
+      "center": {
+        "lat": 19.0623139,
+        "lon": 72.8240266
+      },
+      "nodes": [2610647013, 2610647209, 2610647631, 2610647223, 2610647013],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "Sunni Noori Masjid",
+        "name:en": "Sunni Noori Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 257445449,
+      "center": {
+        "lat": 19.0492075,
+        "lon": 72.9327869
+      },
+      "nodes": [2629720975, 2629720972, 2629720965, 2629720968, 2629720975],
+      "tags": {
+        "amenity": "place_of_worship",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 307396111,
+      "center": {
+        "lat": 19.0405137,
+        "lon": 72.9491891
+      },
+      "nodes": [3125222491, 3125222492, 3125222493, 3125222494, 3125222491],
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:postcode": "400088",
+        "addr:street": "M G Ramchandran Marg",
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "Meraaj Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 314528724,
+      "center": {
+        "lat": 19.0607023,
+        "lon": 72.9167733
+      },
+      "nodes": [3205769003, 3205769004, 3205769005, 3205769006, 3205769003],
+      "tags": {
+        "addr:city": "mumbai",
+        "addr:postcode": "400043",
+        "addr:street": "P.L. Lokhande Marg",
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "denomination": "sunni",
+        "name": "Gausiya Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 314528993,
+      "center": {
+        "lat": 19.0611156,
+        "lon": 72.916223
+      },
+      "nodes": [3205770975, 3205770976, 3205770977, 3205770978, 3205770975],
+      "tags": {
+        "addr:city": "mumbai",
+        "addr:postcode": "400043",
+        "addr:street": "P.L. Lokhande Marg",
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "masjid e quba",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 314547708,
+      "center": {
+        "lat": 19.0358473,
+        "lon": 72.9506768
+      },
+      "nodes": [7334638035, 3204454172, 1496031158, 7334638034, 7334638035],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "gulshane madina masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 314551498,
+      "center": {
+        "lat": 19.0659313,
+        "lon": 72.9224503
+      },
+      "nodes": [3217474396, 3217474397, 3205969393, 3217474395, 3217474396],
+      "tags": {
+        "addr:city": "MUMBAI",
+        "addr:housenumber": "plot no 14",
+        "addr:postcode": "400043",
+        "addr:street": "Road Number 3",
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "denomination": "sunni",
+        "name": "Hari Masjid Road no3",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 315277378,
+      "center": {
+        "lat": 19.0373563,
+        "lon": 72.9507296
+      },
+      "nodes": [3213871519, 3213871520, 3213871521, 3213871522, 3213871519],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "sunni islakiya masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 322190313,
+      "center": {
+        "lat": 19.0741374,
+        "lon": 72.8714902
+      },
+      "nodes": [
+        3289570902, 3289570903, 3289570904, 3289570905, 3289570906, 3289570907,
+        3289570902
+      ],
+      "tags": {
+        "addr:city": "Mumabi",
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "denomination": "sunni",
+        "name": "Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 352790715,
+      "center": {
+        "lat": 19.2842615,
+        "lon": 72.8571652
+      },
+      "nodes": [3585599932, 3585599976, 3585600107, 3585599960, 3585599932],
+      "tags": {
+        "addr:city": "Mira Road East",
+        "addr:postcode": "401107",
+        "addr:street": "front of nursing home",
+        "alt_name": "Naya Nagar Mosque",
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "denomination": "sunni",
+        "height": "12",
+        "name": "Jama Masjid Al Shams",
+        "opening_hours": "Mo-Su 05:30-23:00",
+        "religion": "muslim",
+        "roof:colour": "white",
+        "roof:material": "concrete"
+      }
+    },
+    {
+      "type": "way",
+      "id": 352803266,
+      "center": {
+        "lat": 19.2041569,
+        "lon": 72.8410661
+      },
+      "nodes": [
+        3585725857, 3585725855, 3585725872, 3585725870, 3585725854, 3585725853,
+        3585725787, 3585725790, 3585725795, 3585725805, 3585725857
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "Mosque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 353140988,
+      "center": {
+        "lat": 19.2962848,
+        "lon": 72.8590164
+      },
+      "nodes": [3589073710, 3589073745, 3589073715, 3589073696, 3589073710],
+      "tags": {
+        "building": "mosque",
+        "building:material": "metal",
+        "roof:colour": "silver"
+      }
+    },
+    {
+      "type": "way",
+      "id": 353152936,
+      "center": {
+        "lat": 19.1817911,
+        "lon": 72.8462167
+      },
+      "nodes": [3589202550, 3589202552, 3589202551, 3589202549, 3589202550],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 353181485,
+      "center": {
+        "lat": 19.0773053,
+        "lon": 72.8806799
+      },
+      "nodes": [3589476325, 3589476326, 3589476316, 3589476315, 3589476325],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "Suleman Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 353181494,
+      "center": {
+        "lat": 19.0762005,
+        "lon": 72.8798929
+      },
+      "nodes": [
+        3589476069, 3589476070, 12632092894, 12632092893, 12632092892,
+        12632092891, 12632092890, 3589476031, 12632092889, 12632092888,
+        12632092887, 3589476030, 12632092886, 3589476036, 3589476069
+      ],
+      "tags": {
+        "addr:postcode": "400070",
+        "building": "mosque",
+        "name": "Darul Uloom Mehboob-E-subhani"
+      }
+    },
+    {
+      "type": "way",
+      "id": 353206096,
+      "center": {
+        "lat": 18.9752654,
+        "lon": 72.8425597
+      },
+      "nodes": [
+        3589743521, 3589743520, 3589743519, 3589743518, 3589743515, 3589743514,
+        3589743513, 3589743512, 3589743502, 3589743503, 3589743521
+      ],
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:postcode": "400027",
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "denomination": "sunni",
+        "name": "Narialwadi Kabristan Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 353206130,
+      "center": {
+        "lat": 18.9733498,
+        "lon": 72.8393449
+      },
+      "nodes": [3589743452, 3589743448, 3589743423, 3589743429, 3589743452],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "landuse": "religious",
+        "name": "Hasnabad Dargah",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 353206133,
+      "center": {
+        "lat": 18.9759674,
+        "lon": 72.8408302
+      },
+      "nodes": [3589743539, 3589743541, 3589743540, 3589743538, 3589743539],
+      "tags": {
+        "building": "mosque",
+        "building:levels": "6",
+        "name": "Jamali Masjid"
+      }
+    },
+    {
+      "type": "way",
+      "id": 353364867,
+      "center": {
+        "lat": 18.9626635,
+        "lon": 72.8292477
+      },
+      "nodes": [
+        3591475290, 3591475291, 7498772535, 7498772534, 7498772536, 3591475245,
+        3591475244, 3591475290
+      ],
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:postcode": "400008",
+        "addr:street": "Vasil Khan Marg (Tank Street)",
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "denomination": "sunni",
+        "name": "Badi masjid",
+        "name:ur": "بادی مسجد",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 353405013,
+      "center": {
+        "lat": 18.9648828,
+        "lon": 72.8308613
+      },
+      "nodes": [
+        3591863278, 3591863270, 6827215235, 3591863234, 6827215236, 3591863244,
+        3591863278
+      ],
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:postcode": "400008",
+        "addr:street": "Dimtimakar Road",
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "denomination": "sunni",
+        "name": "Sangtarash Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 353751244,
+      "center": {
+        "lat": 18.9614446,
+        "lon": 72.8363275
+      },
+      "nodes": [
+        3595683900, 3595683899, 3595683894, 3595683895, 3595683886, 3595683887,
+        3595683900
+      ],
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:district": "Mumbai",
+        "addr:postcode": "400009",
+        "addr:street": "A N Surve Marg (Umerkhadi Road)",
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "denomination": "shia",
+        "name": "ali masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 353983521,
+      "center": {
+        "lat": 19.1063306,
+        "lon": 72.9136442
+      },
+      "nodes": [3597695981, 3597695980, 3597695978, 3597695979, 3597695981],
+      "tags": {
+        "addr:postcode": "400079",
+        "addr:street": "aqsa masjid",
+        "building": "mosque",
+        "name": "aqsa masjid"
+      }
+    },
+    {
+      "type": "way",
+      "id": 353997286,
+      "center": {
+        "lat": 19.0675256,
+        "lon": 72.8830409
+      },
+      "nodes": [3597833721, 3597833728, 3597833717, 3597833716, 3597833721],
+      "tags": {
+        "building": "mosque",
+        "name": "Sunni Raza Masjid"
+      }
+    },
+    {
+      "type": "way",
+      "id": 354024137,
+      "center": {
+        "lat": 19.0627318,
+        "lon": 72.9291499
+      },
+      "nodes": [
+        3598204778, 3598204777, 3598204771, 3598204772, 3598204769, 3598204770,
+        3598204773, 3598204774, 3598204776, 3598204775, 3598204778
+      ],
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:housenumber": "Plot No. 39, Road No. 13. Baiganwadi",
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "name": "Anjuman Tamir-E-Millat Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 354860329,
+      "center": {
+        "lat": 19.1632405,
+        "lon": 72.9333278
+      },
+      "nodes": [5859129485, 3605040218, 3605122896, 3605040217, 5859129485],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name:en": "Sunni Jama Masjid and Madrassa",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 355015296,
+      "center": {
+        "lat": 19.1625632,
+        "lon": 72.9374579
+      },
+      "nodes": [3606547931, 3606547930, 5940633714, 3606547929, 3606547931],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name:en": "Jama Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 355082703,
+      "center": {
+        "lat": 19.0729404,
+        "lon": 72.8731704
+      },
+      "nodes": [3289569917, 3606936471, 3606936472, 3606936480, 3289569917],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 356258979,
+      "center": {
+        "lat": 19.0580338,
+        "lon": 72.8392074
+      },
+      "nodes": [3617291071, 3617291074, 3617291073, 3617291070, 3617291071],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "Navpada Jama Masjid",
+        "name:en": "Navpada Jama Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 356531814,
+      "center": {
+        "lat": 19.1141128,
+        "lon": 72.8759249
+      },
+      "nodes": [
+        3619453903, 3619453926, 3619453925, 3619453924, 3619453923, 13415310691,
+        13415310692, 12422440499, 3619453895, 12422440498, 3619453903
+      ],
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:district": "Marol Church Road Andheri East",
+        "addr:postcode": "400059",
+        "addr:street": "Church Rd",
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "building:levels": "3",
+        "check_date": "2025-10-24",
+        "denomination": "shia",
+        "name": "Saifee Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 357187603,
+      "center": {
+        "lat": 19.0444947,
+        "lon": 72.846452
+      },
+      "nodes": [
+        3625175583, 3625175590, 3625175544, 3625175539, 3625175529, 3625175521,
+        3625175583
+      ],
+      "tags": {
+        "addr:city": "Mumbai",
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "Moiniya Jama Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 357448147,
+      "center": {
+        "lat": 18.9553256,
+        "lon": 72.8330964
+      },
+      "nodes": [
+        3626939105, 7486821518, 7486821517, 3626939104, 3626939100, 3626939102,
+        3626939105
+      ],
+      "tags": {
+        "addr:city": "Mumbai",
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "denomination": "sunni",
+        "name": "Chuna Bhatti Markaz Masjid",
+        "name:ur": "چونا بھٹی مارکاز مسجد",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 357448190,
+      "center": {
+        "lat": 18.9585438,
+        "lon": 72.8361738
+      },
+      "nodes": [3626939124, 3626939132, 3626939133, 3626939125, 3626939124],
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:postcode": "400009",
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "denomination": "sunni",
+        "name": "Shaafi Masjid",
+        "name:ur": "شافعی مسجد",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 359074813,
+      "center": {
+        "lat": 19.223023,
+        "lon": 72.9786506
+      },
+      "nodes": [
+        3638688349, 3638688348, 3638688351, 3638688350, 3638688346, 3638688347,
+        3638688343, 3638688341, 3638688338, 3638688339, 3638688340, 3638688342,
+        3638688349
+      ],
+      "tags": {
+        "building": "mosque"
+      }
+    },
+    {
+      "type": "way",
+      "id": 374346197,
+      "center": {
+        "lat": 18.9932522,
+        "lon": 72.831248
+      },
+      "nodes": [3777221762, 3777221764, 3777221763, 3777221761, 3777221762],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "check_date": "2026-03-20",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 381760026,
+      "center": {
+        "lat": 19.1052898,
+        "lon": 72.8779291
+      },
+      "nodes": [3849285017, 3849285018, 3849285019, 3849285020, 3849285017],
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:postcode": "400 059",
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 384553865,
+      "center": {
+        "lat": 18.9829869,
+        "lon": 72.8089964
+      },
+      "nodes": [3878649605, 3878649604, 3878649606, 3878649607, 3878649605],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "name": "Haji Ali",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 389035241,
+      "center": {
+        "lat": 19.1372504,
+        "lon": 72.8083304
+      },
+      "nodes": [
+        3921992991, 13704279506, 3921993039, 13704279502, 3921993016,
+        3921991055, 3921992991
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 390037570,
+      "center": {
+        "lat": 19.1809718,
+        "lon": 72.9584152
+      },
+      "nodes": [3931942707, 3931942708, 3931942709, 3931942710, 3931942707],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 436218416,
+      "center": {
+        "lat": 19.0965014,
+        "lon": 72.9149137
+      },
+      "nodes": [4340930214, 4340930215, 4340930218, 3205776429, 4340930214],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "check_date": "2024-02-20",
+        "denomination": "sufi",
+        "name": "Dargah",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 617781908,
+      "center": {
+        "lat": 19.1667855,
+        "lon": 72.9282136
+      },
+      "nodes": [
+        5839627460, 5839627458, 5839627457, 5839627456, 5839627453, 7241588269,
+        5839627452, 4583547391, 5839627460
+      ],
+      "tags": {
+        "addr:postcode": "400080",
+        "addr:street": "Goregaon Mulund Link Road",
+        "amenity": "place_of_worship",
+        "name:en": "Shah Gaiban Jama Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 617989969,
+      "center": {
+        "lat": 19.16636,
+        "lon": 72.9287737
+      },
+      "nodes": [
+        5841547894, 5841547893, 5841547892, 5839246686, 5841547891, 5841547890,
+        5841547894
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "name:en": "Syed Sultan Shah Qadri Arabi Madrassa",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 617989970,
+      "center": {
+        "lat": 19.165175,
+        "lon": 72.9290076
+      },
+      "nodes": [
+        5841547900, 5841547899, 5841547898, 5841547897, 5841547896, 5841547895,
+        5841547900
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "denomination": "sufi",
+        "name": "Dargah Qutbul-u-Auliya",
+        "religion": "muslim",
+        "website": "http://www.sufimansurulhasanshah.org/"
+      }
+    },
+    {
+      "type": "way",
+      "id": 626354968,
+      "center": {
+        "lat": 19.0659712,
+        "lon": 72.9239932
+      },
+      "nodes": [
+        5913278384, 3215613708, 5913278383, 5913278382, 5913278381, 5913278380,
+        5913278379, 5913278378, 5913278384
+      ],
+      "tags": {
+        "addr:city": "MUMBAI",
+        "addr:postcode": "400043",
+        "addr:street": "Road Number 5",
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "denomination": "sunni",
+        "name": "Ajmare Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 723552319,
+      "center": {
+        "lat": 19.1280366,
+        "lon": 72.9198647
+      },
+      "nodes": [6786347975, 6786347973, 6786347972, 6786347974, 6786347975],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 725782282,
+      "center": {
+        "lat": 18.9637594,
+        "lon": 72.8310103
+      },
+      "nodes": [6804991228, 6804991229, 12655861722, 12655861721, 6804991228],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "name": "Khalid bin Abdur Rahman Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 725785605,
+      "center": {
+        "lat": 18.9568757,
+        "lon": 72.8318319
+      },
+      "nodes": [6804942373, 6804942374, 6804942375, 6804942376, 6804942373],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "denomination": "sunni",
+        "name": "Nawab Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 725787839,
+      "center": {
+        "lat": 18.9544682,
+        "lon": 72.8317186
+      },
+      "nodes": [
+        6805033353, 6805033354, 6805033355, 6805033356, 6805033357, 6805033358,
+        6805033359, 6805033353
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "denomination": "sunni",
+        "name": "Hamidiya Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 725788339,
+      "center": {
+        "lat": 18.9620012,
+        "lon": 72.8309498
+      },
+      "nodes": [
+        6805041907, 6805041908, 6805041909, 6805041910, 7466433033, 6805041907
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "denomination": "sunni",
+        "name": "Temkar Street Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 725794947,
+      "center": {
+        "lat": 18.9633324,
+        "lon": 72.830574
+      },
+      "nodes": [6805086508, 6805086509, 6805086510, 6805086511, 6805086508],
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:postcode": "400008",
+        "addr:street": "B Virani Marg (Hazaria Street)",
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "denomination": "sunni",
+        "name": "Huzaria Street Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 725794948,
+      "center": {
+        "lat": 18.9633888,
+        "lon": 72.8300876
+      },
+      "nodes": [6805086512, 6805086513, 6805086514, 6805086515, 6805086512],
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:postcode": "400008",
+        "addr:street": "Undria Street",
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "denomination": "sunni",
+        "name": "Chowki Mohalla Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 763400845,
+      "center": {
+        "lat": 18.9626188,
+        "lon": 72.831408
+      },
+      "nodes": [7133440102, 7133440103, 7133440104, 7133440105, 7133440102],
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:postcode": "400008",
+        "addr:street": "Shaik Burhan Kamruddin Street",
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "name": "Rasool Masjid",
+        "name:ur": "رسول مسجد",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 800664296,
+      "center": {
+        "lat": 18.9583356,
+        "lon": 72.835364
+      },
+      "nodes": [
+        7488674611, 7488674612, 7488674613, 7488679190, 7488674614, 7488674615,
+        7488674616, 7488674617, 7488674618, 7488674611
+      ],
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:postcode": "400009",
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "denomination": "sunni",
+        "name": "Noor Masjid",
+        "name:ur": "نور مسجد",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 824826865,
+      "center": {
+        "lat": 19.043734,
+        "lon": 72.8469626
+      },
+      "nodes": [
+        7701994029, 7701994030, 7701994031, 7701994032, 7701994033, 7701994034,
+        7701994029
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "Ahl e Hadid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 929237265,
+      "center": {
+        "lat": 19.2733018,
+        "lon": 72.9692026
+      },
+      "nodes": [8617804934, 8617804935, 8617804936, 8617804937, 8617804934],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 970357483,
+      "center": {
+        "lat": 18.9827493,
+        "lon": 72.8088762
+      },
+      "nodes": [
+        674769828, 674769803, 674769832, 674769808, 674769805, 674769816,
+        674769811, 674769831, 674769828
+      ],
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:housenumber": "23",
+        "addr:postcode": "400027",
+        "addr:street": "Haji Ali Causeway",
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "check_date": "2024-09-25",
+        "denomination": "sufi",
+        "layer": "1",
+        "name": "haji ali",
+        "religion": "muslim",
+        "service_times": "5:00 to 17::00"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1013530017,
+      "center": {
+        "lat": 19.2231197,
+        "lon": 72.9787364
+      },
+      "nodes": [
+        9350865553, 9350865558, 9350865565, 9350865563, 9350865561, 9350865555,
+        9350865554, 9350865553
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Dawoodi Bohra Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1060047406,
+      "center": {
+        "lat": 19.0519335,
+        "lon": 72.8363899
+      },
+      "nodes": [
+        9739341859, 9739341860, 9739341861, 9739341862, 9739341863, 9739341864,
+        9739341865, 9739341866, 9739341867, 9739341868, 9739341869, 9739341859
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1170368724,
+      "center": {
+        "lat": 19.1265281,
+        "lon": 72.8341721
+      },
+      "nodes": [
+        10879339978, 10879339977, 10879339976, 10879339975, 10879339978
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Eidgah Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1170388408,
+      "center": {
+        "lat": 19.1524023,
+        "lon": 72.8275811
+      },
+      "nodes": [
+        12497470251, 2126148407, 2126152363, 2126152362, 2126152361,
+        10879528583, 2126153008, 12497470251
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1186783956,
+      "center": {
+        "lat": 19.0388595,
+        "lon": 72.8569162
+      },
+      "nodes": [
+        11022260022, 11022260019, 11022260020, 11022260021, 11022260022
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1187675485,
+      "center": {
+        "lat": 19.1393228,
+        "lon": 72.9049141
+      },
+      "nodes": [
+        11028340617, 11028340615, 11028340614, 11028340616, 11028340609,
+        11028340617
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "name": "Chand Shah Wali Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1212229102,
+      "center": {
+        "lat": 18.9687361,
+        "lon": 72.8450421
+      },
+      "nodes": [
+        11231043827, 11231043828, 11231043829, 11231043830, 11231043831,
+        11231043827
+      ],
+      "tags": {
+        "building": "mosque",
+        "name": "Shafi Masjid"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1225441925,
+      "center": {
+        "lat": 19.0538984,
+        "lon": 72.831959
+      },
+      "nodes": [
+        11364283689, 11364283690, 11364283691, 11364283692, 11364283693,
+        11364283694, 11364283695, 11364283696, 11364283689
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1326213016,
+      "center": {
+        "lat": 19.1452847,
+        "lon": 72.8452039
+      },
+      "nodes": [
+        12270608476, 12270608477, 12270608478, 12270608479, 12270608476
+      ],
+      "tags": {
+        "addr:housename": "Taiba Masjid",
+        "building": "mosque",
+        "name": "Taiba Mosque",
+        "name:hi": "तैबा मस्जिद",
+        "name:mr": "तैबा मशीद",
+        "roof:shape": "pyramidal"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1330603446,
+      "center": {
+        "lat": 19.0908479,
+        "lon": 72.9121191
+      },
+      "nodes": [
+        12311587208, 12311587207, 12311587206, 12311587205, 12311587204,
+        12311587208
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1344571460,
+      "center": {
+        "lat": 18.9619749,
+        "lon": 72.8247582
+      },
+      "nodes": [
+        12438843892, 12438843891, 12438843890, 12438843887, 12438843888,
+        12438843889, 12438843892
+      ],
+      "tags": {
+        "alt_name": "Chhoti Masjid",
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "Ashrafi Jama Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1349158694,
+      "center": {
+        "lat": 19.2118256,
+        "lon": 72.8516761
+      },
+      "nodes": [12479962106, 12479962107, 3591539604, 12479962108, 12479962106],
+      "tags": {
+        "addr:city": "Mumbai",
+        "addr:district": "Mumbai Suburban",
+        "addr:postcode": "400067",
+        "addr:street": "Swami Vivekanand Road",
+        "air_conditioning": "yes",
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "denomination": "sunni",
+        "name": "Madina Masjid",
+        "religion": "muslim",
+        "service_times": "24\\7"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1364248935,
+      "center": {
+        "lat": 19.0788879,
+        "lon": 72.8830659
+      },
+      "nodes": [
+        12633175349, 12633175350, 12633175351, 12633175352, 12633175349
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "Rehmaniya Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1364464458,
+      "center": {
+        "lat": 19.0748942,
+        "lon": 72.8784008
+      },
+      "nodes": [
+        12635548928, 12635548929, 12635548930, 12635548931, 12635548932,
+        12635548933, 12635548934, 12635548935, 12635548936, 12635548937,
+        12635548928
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "Masjid & Madarsa Arfat Ul Uloom",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1373290204,
+      "center": {
+        "lat": 19.0589939,
+        "lon": 72.8226131
+      },
+      "nodes": [
+        12715439185, 12715439186, 12715439187, 12715439188, 12715439185
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1373494139,
+      "center": {
+        "lat": 19.0566924,
+        "lon": 72.8311877
+      },
+      "nodes": [
+        12716963155, 12716963156, 12716963157, 12716963158, 12716963155
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1375103130,
+      "center": {
+        "lat": 19.0849102,
+        "lon": 72.8343433
+      },
+      "nodes": [
+        12731973458, 12731973459, 12731973460, 12731973461, 12731973458
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1379626319,
+      "center": {
+        "lat": 18.9995877,
+        "lon": 72.8138838
+      },
+      "nodes": [
+        12774381687, 12774381688, 12774381689, 12774381690, 12774381687
+      ],
+      "tags": {
+        "building": "mosque",
+        "name": "Jungli Peer Dargah"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1380575746,
+      "center": {
+        "lat": 18.9520562,
+        "lon": 72.818752
+      },
+      "nodes": [3972800894, 12781978289, 12781978290, 12781978291, 3972800894],
+      "tags": {
+        "amenity": "place_of_worship",
+        "name": "Dawoodi Masjid, Charni Road",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1382488972,
+      "center": {
+        "lat": 19.2707713,
+        "lon": 72.8608943
+      },
+      "nodes": [
+        12799699442, 12799699443, 12799699444, 12799699445, 12799699442
+      ],
+      "tags": {
+        "addr:city": "Mira Road(E)",
+        "addr:district": "Thane",
+        "addr:postcode": "401107",
+        "addr:street": "100 Feet Rd",
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "denomination": "muslim",
+        "layer": "1",
+        "name": "Sana Masjid",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1387156397,
+      "center": {
+        "lat": 19.0409822,
+        "lon": 72.8442734
+      },
+      "nodes": [
+        12841369686, 12841369687, 12841369688, 12841369689, 12841369686
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "Dargah Hazrat Qurban Shah",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1387161509,
+      "center": {
+        "lat": 19.0401801,
+        "lon": 72.8388298
+      },
+      "nodes": [
+        4559516090, 12841326456, 12841326457, 12841326458, 12841326459,
+        12841326460, 12841326461, 12841326462, 12841326463, 4559516090
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "name:en": "Makhdoom Ali Shah Mahimi Dargah",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1388004607,
+      "center": {
+        "lat": 19.1693072,
+        "lon": 72.9319131
+      },
+      "nodes": [
+        12848852347, 12848852342, 12848852345, 12848852344, 12848852347
+      ],
+      "tags": {
+        "building": "mosque",
+        "name": "Raza Masjid"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1389875481,
+      "center": {
+        "lat": 19.1669955,
+        "lon": 72.928283
+      },
+      "nodes": [5839627447, 5839627445, 5839627444, 5839627446, 5839627447],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "mosque",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1421889446,
+      "center": {
+        "lat": 19.0538355,
+        "lon": 72.8284793
+      },
+      "nodes": [
+        13067310087, 13067310088, 13067310089, 13067310090, 13067310087
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1457063710,
+      "center": {
+        "lat": 18.962386,
+        "lon": 72.8253413
+      },
+      "nodes": [
+        13362996446, 13362996447, 13362996448, 13362996449, 13362996450,
+        13362996451, 13362996452, 13362996453, 13362996446
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "Haji Karim Shah Dargah",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1457667529,
+      "center": {
+        "lat": 18.9583983,
+        "lon": 72.8308419
+      },
+      "nodes": [
+        860310391, 13368732611, 13368732612, 13368732613, 13368732614,
+        13368732615, 860310391
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "Raza Jame Masjid",
+        "religion": "muslim",
+        "source": "GPS"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1489064961,
+      "center": {
+        "lat": 18.9637416,
+        "lon": 72.8212146
+      },
+      "nodes": [
+        13649274986, 13649274987, 13649274988, 13649274989, 13649274990,
+        13649274986
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "religion": "muslim"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1491798917,
+      "center": {
+        "lat": 18.9617155,
+        "lon": 72.8167603
+      },
+      "nodes": [
+        13671321846, 13671321847, 13671321848, 13671321849, 13671321846
+      ],
+      "tags": {
+        "amenity": "place_of_worship",
+        "building": "yes",
+        "name": "GrantRoad Masjid",
+        "religion": "muslim"
+      }
+    }
+  ]
+}
