@@ -24,7 +24,7 @@ class BottomNav extends StatelessWidget {
         if (dx > 30 && currentIndex > 0) onTap(currentIndex - 1);
       },
       child: Container(
-        height: 72,
+        height: 94,
         decoration: BoxDecoration(
           color: const Color(0xFF080E0B),
           border: Border(

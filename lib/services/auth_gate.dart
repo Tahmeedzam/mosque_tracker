@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:mosque_tracker/screens/login_screen.dart';
+import 'package:mosque_tracker/screens/main_screen.dart';
 import 'package:mosque_tracker/screens/profile_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -20,7 +21,7 @@ class AuthGate extends StatelessWidget {
         final session = snapshot.hasData ? snapshot.data!.session : null;
 
         if (session != null) {
-          return ProfileScreen();
+          return MainScreen();
         } else {
           return LoginScreen();
         }
