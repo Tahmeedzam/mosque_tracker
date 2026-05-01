@@ -1,15 +1,163 @@
 import 'package:flutter/material.dart';
+import 'package:mosque_tracker/services/mosque.service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-class MosqueBottomSheet extends StatelessWidget {
+class MosqueBottomSheet extends StatefulWidget {
   final Map<String, dynamic> mosque;
   final VoidCallback onClose;
+  final VoidCallback onVisitChanged; // ✅ NEW: tells the map to refresh markers
 
-  const MosqueBottomSheet({required this.mosque, required this.onClose});
+  const MosqueBottomSheet({
+    super.key,
+    required this.mosque,
+    required this.onClose,
+    required this.onVisitChanged,
+  });
+
+  @override
+  State<MosqueBottomSheet> createState() => _MosqueBottomSheetState();
+}
+
+class _MosqueBottomSheetState extends State<MosqueBottomSheet> {
+  final supabase = Supabase.instance.client;
+  late bool isVisited;
+
+  @override
+  void initState() {
+    super.initState();
+    isVisited = widget.mosque["visited"] == true;
+  }
+
+  // ✅ FIX: when a NEW mosque is tapped, reset isVisited from the new prop
+  @override
+  void didUpdateWidget(covariant MosqueBottomSheet oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.mosque["id"] != widget.mosque["id"]) {
+      setState(() {
+        isVisited = widget.mosque["visited"] == true;
+      });
+    }
+  }
+
+  String _formatDistance(dynamic distance) {
+    if (distance == null) return "";
+    final meters = (distance as double).round();
+    if (meters >= 1000) {
+      return "${(meters / 1000).toStringAsFixed(1)} KM AWAY";
+    }
+    return "$meters M AWAY";
+  }
+
+  Future<void> _markAsVisited() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: CircularProgressIndicator(color: Color(0xFF52B788)),
+      ),
+    );
+
+    try {
+      final userId = supabase.auth.currentUser?.id;
+      if (userId == null) throw "User not logged in";
+
+      await supabase.from("visitedMosque").insert({
+        'user_id': userId,
+        'mosque_id': widget.mosque["id"],
+      });
+
+      await MosqueService().loadVisitedMosques(forceReload: true);
+
+      if (mounted) {
+        setState(() => isVisited = true);
+        widget.onVisitChanged(); // ✅ tell the map to refresh
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
+    }
+  }
+
+  Future<void> _unmarkAsVisited() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF152419),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: const Color(0xFFC9963A).withOpacity(0.2)),
+        ),
+        title: const Text(
+          "Remove visit?",
+          style: TextStyle(color: Color(0xFFF5F0E8), fontFamily: 'Georgia'),
+        ),
+        content: Text(
+          "Are you sure you want to mark \"${widget.mosque["name"]}\" as not visited?",
+          style: const TextStyle(color: Color(0xFF9E9C97), fontSize: 13),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text(
+              "Cancel",
+              style: TextStyle(color: Color(0xFF52B788)),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text(
+              "Remove",
+              style: TextStyle(color: Colors.redAccent),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: CircularProgressIndicator(color: Color(0xFF52B788)),
+      ),
+    );
+
+    try {
+      final userId = supabase.auth.currentUser?.id;
+      if (userId == null) throw "User not logged in";
+
+      await supabase
+          .from("visitedMosque")
+          .delete()
+          .eq('user_id', userId)
+          .eq('mosque_id', widget.mosque["id"]);
+
+      await MosqueService().loadVisitedMosques(forceReload: true);
+
+      if (mounted) {
+        setState(() => isVisited = false);
+        widget.onVisitChanged(); // ✅ tell the map to refresh
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final isVisited = mosque["visited"] == true;
-
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF152419).withOpacity(0.97),
@@ -28,7 +176,6 @@ class MosqueBottomSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Drag handle
           Center(
             child: Container(
               width: 36,
@@ -41,7 +188,6 @@ class MosqueBottomSheet extends StatelessWidget {
           ),
           const SizedBox(height: 14),
 
-          // Header row
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -50,7 +196,7 @@ class MosqueBottomSheet extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      mosque["name"],
+                      widget.mosque["name"],
                       style: const TextStyle(
                         fontFamily: 'Georgia',
                         fontSize: 20,
@@ -61,58 +207,70 @@ class MosqueBottomSheet extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      "250 M AWAY", // replace with real distance later
-                      style: TextStyle(
+                      _formatDistance(widget.mosque["distance"]),
+                      style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF52B788),
+                        color: Color(0xFF52B788),
                         letterSpacing: 0.06,
                       ),
                     ),
                   ],
                 ),
               ),
-              if (isVisited)
-                Container(
+              GestureDetector(
+                onTap: isVisited ? _unmarkAsVisited : _markAsVisited,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,
                     vertical: 5,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2D6A4F).withOpacity(0.25),
+                    color: isVisited
+                        ? const Color(0xFF374B42).withOpacity(0.25)
+                        : Colors.white.withOpacity(0.05),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: const Color(0xFF52B788).withOpacity(0.3),
+                      color: isVisited
+                          ? const Color(0xFF52B788).withOpacity(0.3)
+                          : const Color(0xFFC9963A).withOpacity(0.3),
                     ),
                   ),
-                  child: const Text(
-                    "✓ Visited",
+                  child: Text(
+                    isVisited ? "✓ Visited" : "Mark as Visited",
                     style: TextStyle(
                       fontSize: 11,
-                      color: Color(0xFF52B788),
+                      color: isVisited
+                          ? const Color(0xFF52B788)
+                          : const Color(0xFF9E9C97),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
 
-          // Meta chips
           Row(
             children: [
-              _MetaChip(icon: Icons.location_on_outlined, label: "Mumbai"),
-              const SizedBox(width: 8),
-              if (isVisited)
+              if ((widget.mosque["city"] ?? "").toString().isNotEmpty)
                 _MetaChip(
-                  icon: Icons.access_time_outlined,
-                  label: "Visited Mar 15",
+                  icon: Icons.location_on_outlined,
+                  label: widget.mosque["city"].toString(),
                 ),
+              const SizedBox(width: 8),
+              _MetaChip(
+                icon: widget.mosque["verified"]
+                    ? Icons.verified_outlined
+                    : Icons.dangerous_outlined,
+                label: widget.mosque["verified"] ? "Verified" : "Not Verified",
+              ),
             ],
           ),
           const SizedBox(height: 14),
 
-          // Action button
           SizedBox(
             width: double.infinity,
             child: TextButton(

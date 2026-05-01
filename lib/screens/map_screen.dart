@@ -1,12 +1,14 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:mosque_tracker/screens/mosque_bottom_sheet.dart';
-import 'package:mosque_tracker/services/overpass_service.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
+
+import 'package:mosque_tracker/services/mosque.service.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -22,12 +24,8 @@ class _MapScreenState extends State<MapScreen> {
   List<Map<String, dynamic>> mosques = [];
   final mosqueService = MosqueService();
 
-  // For bottom sheet
   Map<String, dynamic>? selectedMosque;
   bool showBottomSheet = false;
-
-  // Visited mosque ids — will come from Supabase later
-  final Set<String> visitedIds = {"123456", "789012"}; // hardcoded for now
 
   Future<geo.Position> _getCurrentLocation() async {
     bool serviceEnabled = await geo.Geolocator.isLocationServiceEnabled();
@@ -62,12 +60,20 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   Future<void> setMosquesData() async {
-    mosques = await mosqueService.getMosquesNearby(lat, long);
-    debugPrint("Total mosques: ${mosques.length}");
-    await _addMosqueMarkers();
+    await Future.wait([
+      mosqueService.loadMosques(),
+      mosqueService.loadVisitedMosques(),
+    ]);
+
+    final nearby = mosqueService.getMosquesNearby(lat, long);
+
+    if (mounted) {
+      setState(() => mosques = nearby);
+      debugPrint("Mosques near user: ${mosques.length}");
+      await _addMosqueMarkers();
+    }
   }
 
-  // Generate a circular mosque icon programmatically
   Future<Uint8List> _createMosqueIcon(bool visited) async {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
@@ -81,7 +87,6 @@ class _MapScreenState extends State<MapScreen> {
         ? const Color(0xFFE8B96A)
         : const Color(0xFF52B788);
 
-    // Outer glow for visited
     if (visited) {
       final glowPaint = Paint()
         ..color = const Color(0xFF2D6A4F).withOpacity(0.3)
@@ -89,18 +94,15 @@ class _MapScreenState extends State<MapScreen> {
       canvas.drawCircle(const Offset(size / 2, size / 2), 28, glowPaint);
     }
 
-    // Background circle
     final bgPaint = Paint()..color = bgColor;
     canvas.drawCircle(const Offset(size / 2, size / 2), 22, bgPaint);
 
-    // Border
     final borderPaint = Paint()
       ..color = borderColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = visited ? 2.5 : 1.5;
     canvas.drawCircle(const Offset(size / 2, size / 2), 22, borderPaint);
 
-    // Mosque emoji text
     final textPainter = TextPainter(
       text: TextSpan(
         text: '🕌',
@@ -126,7 +128,6 @@ class _MapScreenState extends State<MapScreen> {
   Future<void> _addMosqueMarkers() async {
     if (mapboxMapController == null || mosques.isEmpty) return;
 
-    // Create and register both icon images
     final visitedIcon = await _createMosqueIcon(true);
     final unvisitedIcon = await _createMosqueIcon(false);
 
@@ -139,7 +140,6 @@ class _MapScreenState extends State<MapScreen> {
       [],
       null,
     );
-
     await mapboxMapController!.style.addStyleImage(
       "mosque-unvisited",
       1.0,
@@ -150,39 +150,17 @@ class _MapScreenState extends State<MapScreen> {
       null,
     );
 
-    // Build GeoJSON with visited property
-    final features = mosques.map((mosque) {
-      final isVisited = visitedIds.contains(mosque["id"]);
-      return {
-        "type": "Feature",
-        "properties": {
-          "id": mosque["id"],
-          "name": mosque["name"],
-          "visited": isVisited,
-          "icon": isVisited ? "mosque-visited" : "mosque-unvisited",
-        },
-        "geometry": {
-          "type": "Point",
-          "coordinates": [mosque["lng"], mosque["lat"]],
-        },
-      };
-    }).toList();
-
-    final geoJson = jsonEncode({
-      "type": "FeatureCollection",
-      "features": features,
-    });
+    final geoJson = _buildGeoJson();
 
     await mapboxMapController!.style.addSource(
       GeoJsonSource(id: "mosques-source", data: geoJson),
     );
 
-    // Symbol layer using custom icons
     await mapboxMapController!.style.addLayer(
       SymbolLayer(
         id: "mosques-layer",
         sourceId: "mosques-source",
-        iconImage: "mosque-unvisited", // default, expression overrides below
+        iconImageExpression: ["get", "icon"],
         iconSize: 0.6,
         iconAllowOverlap: true,
         textField: "{name}",
@@ -197,16 +175,53 @@ class _MapScreenState extends State<MapScreen> {
       ),
     );
 
-    // Hide all other POI labels on the map
     _hidePOILayers();
-
-    // Set up tap listener
     mapboxMapController!.setOnMapTapListener(_onMapTap);
-
     debugPrint("Markers added: ${mosques.length}");
   }
 
-  // Hide non-mosque POI icons and labels
+  // ✅ NEW: builds a fresh GeoJSON string reflecting current visited state
+  String _buildGeoJson() {
+    final features = mosques.map((mosque) {
+      final mosqueId = mosque["id"].toString();
+      final isVisited = mosqueService.isMosqueVisited(mosqueId);
+      return {
+        "type": "Feature",
+        "properties": {
+          "id": mosqueId,
+          "name": mosque["name"],
+          "visited": isVisited,
+          "icon": isVisited ? "mosque-visited" : "mosque-unvisited",
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [mosque["lng"], mosque["lat"]],
+        },
+      };
+    }).toList();
+
+    return jsonEncode({"type": "FeatureCollection", "features": features});
+  }
+
+  // ✅ NEW: called by the bottom sheet after a visit change.
+  // Updates the GeoJSON source in-place — no layer rebuild needed.
+  Future<void> _refreshMarkers() async {
+    if (mapboxMapController == null) return;
+
+    final geoJson = _buildGeoJson();
+
+    try {
+      await mapboxMapController!.style.setStyleSourceProperty(
+        "mosques-source",
+        "data",
+        geoJson,
+      );
+      debugPrint("Markers refreshed after visit change");
+    } catch (e) {
+      debugPrint("Error refreshing markers: $e");
+    }
+  }
+
   void _hidePOILayers() async {
     final style = mapboxMapController!.style;
     final layersToHide = [
@@ -224,6 +239,7 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+  // ✅ Updated _onMapTap — zooms into the tapped mosque
   void _onMapTap(MapContentGestureContext context) async {
     if (mapboxMapController == null) return;
 
@@ -236,11 +252,49 @@ class _MapScreenState extends State<MapScreen> {
     );
 
     if (features.isNotEmpty) {
+      final feature = features.first?.queriedFeature.feature;
+      if (feature == null) return;
+
+      final rawProps = feature["properties"];
+      final props = Map<String, dynamic>.from(rawProps as Map);
+
+      final mosqueId = props["id"]?.toString() ?? "";
+      final fullMosque = mosqueService.mosques.firstWhere(
+        (m) => m["id"].toString() == mosqueId,
+        orElse: () => {
+          "id": mosqueId,
+          "name": props["name"]?.toString() ?? "Unnamed Mosque",
+          "lat": 0.0,
+          "lng": 0.0,
+          "city": "",
+          "verified": false,
+        },
+      );
+
+      final mosqueLat = (fullMosque["lat"] as num).toDouble();
+      final mosqueLng = (fullMosque["lng"] as num).toDouble();
+
+      // ✅ Zoom in to the tapped mosque
+      mapboxMapController?.flyTo(
+        CameraOptions(
+          center: Point(coordinates: Position(mosqueLng, mosqueLat)),
+          zoom: 16.5,
+        ),
+        MapAnimationOptions(duration: 500),
+      );
+
+      final distanceMeters = _calculateDistance(
+        lat,
+        long,
+        mosqueLat,
+        mosqueLng,
+      );
+
       setState(() {
         selectedMosque = {
-          "id": "demo_001",
-          "name": "Masjid Al-Noor",
-          "visited": true,
+          ...fullMosque,
+          "visited": mosqueService.isMosqueVisited(mosqueId),
+          "distance": distanceMeters,
         };
         showBottomSheet = true;
       });
@@ -248,6 +302,26 @@ class _MapScreenState extends State<MapScreen> {
       setState(() => showBottomSheet = false);
     }
   }
+
+  double _calculateDistance(
+    double lat1,
+    double lng1,
+    double lat2,
+    double lng2,
+  ) {
+    const earthRadius = 6371000.0;
+    const roadFactor =
+        1.4; // ✅ real-world roads are ~40% longer than straight line
+    final dLat = _toRad(lat2 - lat1);
+    final dLng = _toRad(lng2 - lng1);
+    final a =
+        (sin(dLat / 2) * sin(dLat / 2)) +
+        (cos(_toRad(lat1)) * cos(_toRad(lat2)) * sin(dLng / 2) * sin(dLng / 2));
+    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    return earthRadius * c * roadFactor; // ✅ multiply here
+  }
+
+  double _toRad(double deg) => deg * (3.141592653589793 / 180);
 
   @override
   void initState() {
@@ -259,7 +333,28 @@ class _MapScreenState extends State<MapScreen> {
     mapboxMapController?.location.updateSettings(
       LocationComponentSettings(enabled: true, pulsingEnabled: true),
     );
+    mapboxMapController?.scaleBar.updateSettings(
+      ScaleBarSettings(enabled: false),
+    );
+    mapboxMapController?.logo.updateSettings(LogoSettings(enabled: false));
+    mapboxMapController?.attribution.updateSettings(
+      AttributionSettings(enabled: false),
+    );
+    mapboxMapController?.compass.updateSettings(
+      CompassSettings(enabled: false),
+    );
     _getCurrentLocation();
+  }
+
+  void _zoomToUserLocation() {
+    if (lat == 0.0 && long == 0.0) return;
+    mapboxMapController?.flyTo(
+      CameraOptions(
+        center: Point(coordinates: Position(long, lat)),
+        zoom: 15.0,
+      ),
+      MapAnimationOptions(duration: 600),
+    );
   }
 
   @override
@@ -268,7 +363,6 @@ class _MapScreenState extends State<MapScreen> {
       backgroundColor: const Color(0xFF0F1A14),
       body: Stack(
         children: [
-          // Map
           MapWidget(
             cameraOptions: CameraOptions(
               center: Point(
@@ -280,17 +374,21 @@ class _MapScreenState extends State<MapScreen> {
             onMapCreated: _onMapCreated,
           ),
 
-          // Search bar
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              padding: const EdgeInsets.fromLTRB(16, 36, 16, 0),
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 14,
                   vertical: 12,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1C2E22).withOpacity(0.95),
+                  color: const Color.fromARGB(
+                    255,
+                    14,
+                    26,
+                    20,
+                  ).withOpacity(0.95),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: const Color(0xFFC9963A).withOpacity(0.2),
@@ -324,9 +422,38 @@ class _MapScreenState extends State<MapScreen> {
               ),
             ),
           ),
+          // ✅ My location FAB
+          Positioned(
+            right: 16,
+            bottom: 20,
+            child: GestureDetector(
+              onTap: _zoomToUserLocation,
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF152419).withOpacity(0.97),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: const Color(0xFF52B788).withOpacity(0.3),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.4),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.my_location_rounded,
+                  color: Color(0xFF52B788),
+                  size: 20,
+                ),
+              ),
+            ),
+          ),
 
-          // Floating bottom sheet
-          // Floating bottom sheet
           AnimatedPositioned(
             duration: const Duration(milliseconds: 320),
             curve: Curves.easeOutCubic,
@@ -340,6 +467,8 @@ class _MapScreenState extends State<MapScreen> {
                   ? MosqueBottomSheet(
                       mosque: selectedMosque!,
                       onClose: () => setState(() => showBottomSheet = false),
+                      onVisitChanged:
+                          _refreshMarkers, // ✅ pass the refresh callback
                     )
                   : const SizedBox.shrink(),
             ),
@@ -349,5 +478,3 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 }
-
-// ── Floating bottom sheet widget ──────────────────────────────────────────────

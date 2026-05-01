@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
-import 'package:mosque_tracker/screens/main_screen.dart';
-import 'package:mosque_tracker/screens/map_screen.dart';
 import 'package:mosque_tracker/services/auth_gate.dart';
+import 'package:mosque_tracker/services/mosque.service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
@@ -15,8 +15,15 @@ void main() async {
     anonKey: dotenv.env["SUPABASE_ANON_KEY"]!,
     url: dotenv.env["SUPABASE_URL"]!,
   );
+  MosqueService().loadMosques();
+  MosqueService().loadVisitedMosques();
 
-  runApp(const MyApp());
+  runApp(
+    const ProviderScope(
+      // ✅ wrap entire app in ProviderScope
+      child: MyApp(),
+    ),
+  );
 }
 
 Future<void> setup() async {
