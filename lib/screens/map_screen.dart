@@ -3,12 +3,16 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:mosque_tracker/components/blinkingDot.dart';
 import 'package:mosque_tracker/screens/mosque_bottom_sheet.dart';
+import 'package:mosque_tracker/services/geofence.service.dart';
+import 'package:mosque_tracker/services/local_database_service.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:mosque_tracker/services/mosque.service.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -18,6 +22,7 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
+  final _geofenceService = MosqueGeofenceService();
   double lat = 0.0;
   double long = 0.0;
   MapboxMap? mapboxMapController;
@@ -26,6 +31,8 @@ class _MapScreenState extends State<MapScreen> {
 
   Map<String, dynamic>? selectedMosque;
   bool showBottomSheet = false;
+  final _localDatabaseService = LocalDatabaseService.instance;
+  int? mosqueStatus;
 
   Future<geo.Position> _getCurrentLocation() async {
     bool serviceEnabled = await geo.Geolocator.isLocationServiceEnabled();
@@ -48,6 +55,9 @@ class _MapScreenState extends State<MapScreen> {
       long = value.longitude;
     });
 
+    print("lat:$lat");
+    print("long:$long");
+
     mapboxMapController?.setCamera(
       CameraOptions(
         center: Point(coordinates: Position(long, lat)),
@@ -69,8 +79,16 @@ class _MapScreenState extends State<MapScreen> {
 
     if (mounted) {
       setState(() => mosques = nearby);
-      debugPrint("Mosques near user: ${mosques.length}");
       await _addMosqueMarkers();
+
+      final activityPermission = await Permission.activityRecognition.request();
+      if (activityPermission.isDenied) {
+        debugPrint("Activity recognition permission denied");
+        return;
+      }
+
+      // Start geofencing for nearby mosques only
+      await _geofenceService.startGeofencing(nearby);
     }
   }
 
@@ -325,11 +343,26 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   void initState() {
+    _getCurrentMosqueStatus();
     super.initState();
   }
 
-  void _onMapCreated(MapboxMap controller) {
+  @override
+  void dispose() {
+    _geofenceService.stop();
+    super.dispose();
+  }
+
+  void _getCurrentMosqueStatus() async {
+    int status = await _localDatabaseService.getCurrentStatus();
+    setState(() {
+      mosqueStatus = status; // Trigger a rebuild once data arrives
+    });
+  }
+
+  void _onMapCreated(MapboxMap controller) async {
     setState(() => mapboxMapController = controller);
+
     mapboxMapController?.location.updateSettings(
       LocationComponentSettings(enabled: true, pulsingEnabled: true),
     );
@@ -343,6 +376,17 @@ class _MapScreenState extends State<MapScreen> {
     mapboxMapController?.compass.updateSettings(
       CompassSettings(enabled: false),
     );
+
+    // Initialize geofencing
+    await _geofenceService.initialize();
+
+    // When user confirms prayer from notification
+    _geofenceService.onPrayerConfirmed = (mosqueId, mosqueName) async {
+      await mosqueService.markMosqueVisited(mosqueId);
+      await _refreshMarkers();
+      debugPrint("Prayer confirmed at $mosqueName via notification");
+    };
+
     _getCurrentLocation();
   }
 
@@ -422,6 +466,53 @@ class _MapScreenState extends State<MapScreen> {
               ),
             ),
           ),
+
+          // 0 for not in mosque, 1 for in mosque
+          mosqueStatus == 0
+              ? Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 120, 265, 0),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(
+                        255,
+                        14,
+                        26,
+                        20,
+                      ).withOpacity(0.95),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: const Color(0xFFC9963A).withOpacity(0.2),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        const BlinkingDot(),
+                        SizedBox(width: 14),
+                        Text(
+                          "In mosque",
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.3),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : SizedBox(),
+
           // ✅ My location FAB
           Positioned(
             right: 16,

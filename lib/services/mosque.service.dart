@@ -1,3 +1,8 @@
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MosqueService {
@@ -77,5 +82,64 @@ class MosqueService {
       final mLng = (m['lng'] as num).toDouble();
       return mLat >= south && mLat <= north && mLng >= west && mLng <= east;
     }).toList();
+  }
+
+  // In mosque.service.dart, add this method
+  Future<Map<String, String>> getAddressFromLatLng(
+    double lat,
+    double lng,
+  ) async {
+    final token = dotenv.env["MAPBOX_GLOBAL_TOKEN"]!;
+    final url = Uri.parse(
+      "https://api.mapbox.com/geocoding/v5/mapbox.places/$lng,$lat.json"
+      "?access_token=$token&types=address,place,country&limit=1",
+    );
+
+    try {
+      final response = await http.get(url);
+      final data = jsonDecode(response.body);
+      final features = data["features"] as List;
+      if (features.isEmpty) return {"address": "", "city": "", "country": ""};
+
+      final feature = features.first;
+      final address = feature["place_name"] as String? ?? "";
+
+      // Context array has city, region, country broken out
+      final context = feature["context"] as List? ?? [];
+      String city = "";
+      String country = "";
+
+      for (final item in context) {
+        final id = item["id"].toString();
+        if (id.startsWith("place")) city = item["text"] ?? "";
+        if (id.startsWith("country")) country = item["text"] ?? "";
+      }
+
+      return {"address": address, "city": city, "country": country};
+    } catch (e) {
+      debugPrint("Geocoding error: $e");
+      return {"address": "", "city": "", "country": ""};
+    }
+  }
+
+  Future<void> markMosqueVisited(String mosqueId) async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) return;
+
+      // Don't insert if already visited
+      if (isMosqueVisited(mosqueId)) return;
+
+      await _supabase.from('visitedMosque').insert({
+        "user_id": userId,
+        "mosque_id": mosqueId,
+      });
+
+      // Reload visited list
+      await loadVisitedMosques(forceReload: true);
+      debugPrint("Mosque $mosqueId marked as visited");
+    } catch (e) {
+      debugPrint("Error marking visited: $e");
+    }
   }
 }

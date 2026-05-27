@@ -37,15 +37,17 @@ class _LoginScreenState extends State<LoginScreen> {
 
   continueWithGoogle() async {
     try {
-      GoogleSignIn singIn = GoogleSignIn.instance;
-      await singIn.initialize(
+      GoogleSignIn signIn = GoogleSignIn.instance;
+      await signIn.initialize(
         serverClientId: dotenv.env["WEB_OAUTH"],
         clientId: Platform.isAndroid
             ? dotenv.env["ANDROID_OAUTH"]
             : dotenv.env["IOS_OAUTH"],
       );
-      GoogleSignInAccount account = await singIn.authenticate();
+
+      GoogleSignInAccount account = await signIn.authenticate();
       String idToken = account.authentication.idToken ?? "";
+
       final authorization =
           await account.authorizationClient.authorizationForScopes([
             'email',
@@ -63,17 +65,33 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (result.user != null && result.session != null) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => ProfileScreen()),
-          (context) => false,
+        final user = result.user!;
+
+        // ✅ upsert — inserts on first login, updates on return login
+        // ignoreDuplicates: false means it will update if row already exists
+        await supabase.from('users').upsert(
+          {
+            'id': user.id,
+            'email': user.email,
+            'full_name': user.userMetadata?['full_name'] ?? '',
+            'avatar_url': user.userMetadata?['avatar_url'] ?? '',
+          },
+          onConflict: 'id', // if id already exists, update instead of insert
         );
+
+        if (mounted) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const ProfileScreen()),
+            (route) => false,
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text("Error $e")));
+        ).showSnackBar(SnackBar(content: Text("Error: $e")));
       }
     }
   }

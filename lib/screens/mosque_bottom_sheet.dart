@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mosque_tracker/screens/mosque_detail_modal.dart';
 import 'package:mosque_tracker/services/mosque.service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -156,6 +157,23 @@ class _MosqueBottomSheetState extends State<MosqueBottomSheet> {
     }
   }
 
+  void _showDetailModal(BuildContext context) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: "Dismiss",
+      barrierColor: Colors.black.withOpacity(0.6),
+      transitionDuration: const Duration(milliseconds: 280),
+      transitionBuilder: (ctx, anim, _, child) {
+        return ScaleTransition(
+          scale: CurvedAnimation(parent: anim, curve: Curves.easeOutCubic),
+          child: FadeTransition(opacity: anim, child: child),
+        );
+      },
+      pageBuilder: (ctx, _, __) => MosqueDetailModal(mosque: widget.mosque),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -274,7 +292,24 @@ class _MosqueBottomSheetState extends State<MosqueBottomSheet> {
           SizedBox(
             width: double.infinity,
             child: TextButton(
-              onPressed: () {},
+              onPressed: () {
+                showGeneralDialog(
+                  context: context,
+                  barrierDismissible: true,
+                  barrierLabel: "Dismiss",
+                  barrierColor: Colors.black.withOpacity(0.6),
+                  transitionDuration: const Duration(milliseconds: 280),
+                  transitionBuilder: (ctx, anim, _, child) => ScaleTransition(
+                    scale: CurvedAnimation(
+                      parent: anim,
+                      curve: Curves.easeOutCubic,
+                    ),
+                    child: FadeTransition(opacity: anim, child: child),
+                  ),
+                  pageBuilder: (ctx, _, __) =>
+                      MosqueDetailModal(mosque: widget.mosque),
+                );
+              },
               style: TextButton.styleFrom(
                 backgroundColor: const Color(0xFF2D6A4F),
                 padding: const EdgeInsets.symmetric(vertical: 14),
