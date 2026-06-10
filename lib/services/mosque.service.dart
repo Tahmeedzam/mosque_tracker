@@ -24,12 +24,14 @@ class MosqueService {
   List<Map<String, dynamic>> get visitedMosques => _visitedMosques;
   bool get isLoaded => _mosquesLoaded;
 
-  Future<void> loadMosques() async {
-    if (_mosquesLoaded) return;
+  Future<void> loadMosques({bool forceReload = false}) async {
+    if (_mosquesLoaded && !forceReload) return;
     try {
       final response = await _supabase
           .from('mosques')
-          .select('id, name, lat, lng, city, verified')
+          .select(
+            'id, name, lat, lng, city, country, verified, status, women_allowed, has_wudu_area, has_parking, verified_count',
+          )
           .order('name');
 
       _mosques = List<Map<String, dynamic>>.from(response);

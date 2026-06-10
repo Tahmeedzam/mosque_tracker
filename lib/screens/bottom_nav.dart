@@ -9,7 +9,7 @@ class BottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = [
       {'icon': Icons.map_outlined, 'label': 'Map'},
-      {'icon': Icons.menu_book_outlined, 'label': 'Journey'},
+      {'icon': Icons.access_time_rounded, 'label': 'Prayer'},
       {'icon': Icons.military_tech_outlined, 'label': 'Badges'},
       {'icon': Icons.person_outline, 'label': 'Profile'},
     ];

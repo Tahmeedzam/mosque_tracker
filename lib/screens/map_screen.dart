@@ -1,10 +1,12 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:mosque_tracker/components/blinkingDot.dart';
 import 'package:mosque_tracker/screens/mosque_bottom_sheet.dart';
+import 'package:mosque_tracker/services/foreground_service_manager.dart';
 import 'package:mosque_tracker/services/geofence.service.dart';
 import 'package:mosque_tracker/services/local_database_service.dart';
 import 'dart:convert';
@@ -13,6 +15,7 @@ import 'dart:ui' as ui;
 
 import 'package:mosque_tracker/services/mosque.service.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -33,6 +36,12 @@ class _MapScreenState extends State<MapScreen> {
   bool showBottomSheet = false;
   final _localDatabaseService = LocalDatabaseService.instance;
   int? mosqueStatus;
+  int totalMosque = 0;
+  int visitedMosque = 0;
+  final _supabase = Supabase.instance.client;
+  List<Map<String, dynamic>> _mosques = [];
+  List<Map<String, dynamic>> _visitedMosques = [];
+  // List<Map<String, dynamic>> get visitedMosques => _visitedMosques;
 
   Future<geo.Position> _getCurrentLocation() async {
     bool serviceEnabled = await geo.Geolocator.isLocationServiceEnabled();
@@ -48,6 +57,10 @@ class _MapScreenState extends State<MapScreen> {
     if (permission == geo.LocationPermission.deniedForever) {
       return Future.error("Location permissions are permanently disabled");
     }
+    // if (await FlutterForegroundTask.checkNotificationPermission() !=
+    //     NotificationPermission.granted) {
+    //   await FlutterForegroundTask.requestNotificationPermission();
+    // }
 
     geo.Position value = await geo.Geolocator.getCurrentPosition();
     setState(() {
@@ -89,6 +102,7 @@ class _MapScreenState extends State<MapScreen> {
 
       // Start geofencing for nearby mosques only
       await _geofenceService.startGeofencing(nearby);
+      await ForegroundServiceManager.start();
     }
   }
 
@@ -343,6 +357,8 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   void initState() {
+    _getMosqueVisited();
+    _getTotalMosque();
     _getCurrentMosqueStatus();
     super.initState();
   }
@@ -377,16 +393,6 @@ class _MapScreenState extends State<MapScreen> {
       CompassSettings(enabled: false),
     );
 
-    // Initialize geofencing
-    await _geofenceService.initialize();
-
-    // When user confirms prayer from notification
-    _geofenceService.onPrayerConfirmed = (mosqueId, mosqueName) async {
-      await mosqueService.markMosqueVisited(mosqueId);
-      await _refreshMarkers();
-      debugPrint("Prayer confirmed at $mosqueName via notification");
-    };
-
     _getCurrentLocation();
   }
 
@@ -399,6 +405,47 @@ class _MapScreenState extends State<MapScreen> {
       ),
       MapAnimationOptions(duration: 600),
     );
+  }
+
+  void _getMosqueVisited() async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) return;
+
+      final response = await _supabase
+          .from('visitedMosque')
+          .select('id, mosque_id, visited_at')
+          .eq('user_id', userId)
+          .order('visited_at');
+
+      _visitedMosques = List<Map<String, dynamic>>.from(response);
+      setState(() {
+        visitedMosque = _visitedMosques.length;
+      });
+    } catch (e) {
+      print("Error loading visited mosques: $e");
+      _visitedMosques = [];
+    }
+  }
+
+  void _getTotalMosque() async {
+    try {
+      // 1. Request only the count from Supabase without downloading row data
+      final response = await _supabase
+          .from('mosques')
+          .select('id') // Selecting just 'id' is enough when counting
+          .count(CountOption.exact);
+
+      // 2. Safely check if the widget is still active before updating UI
+      if (!mounted) return;
+
+      // 3. Update the state with the count returned from the server
+      setState(() {
+        totalMosque = response.count;
+      });
+    } catch (e) {
+      print("Error loading mosque count: $e");
+    }
   }
 
   @override
@@ -419,20 +466,15 @@ class _MapScreenState extends State<MapScreen> {
           ),
 
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 36, 16, 0),
+            child: Center(
+              heightFactor: 1.5,
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 14,
                   vertical: 12,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color.fromARGB(
-                    255,
-                    14,
-                    26,
-                    20,
-                  ).withOpacity(0.95),
+                  color: const Color.fromARGB(255, 14, 26, 20).withOpacity(0.4),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: const Color(0xFFC9963A).withOpacity(0.2),
@@ -446,19 +488,17 @@ class _MapScreenState extends State<MapScreen> {
                   ],
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      Icons.search,
-                      color: Colors.white.withOpacity(0.35),
-                      size: 18,
-                    ),
-                    const SizedBox(width: 10),
+                    Text("🕌", style: TextStyle(fontSize: 18)),
+                    SizedBox(width: 10),
                     Text(
-                      "Find a mosque...",
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.3),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
+                      "${visitedMosque} / ${totalMosque}",
+                      style: const TextStyle(
+                        fontFamily: 'Georgia',
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFFF5F0E8),
                       ),
                     ),
                   ],
@@ -467,51 +507,100 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
 
+          // SafeArea(
+          //   child: Padding(
+          //     padding: const EdgeInsets.fromLTRB(16, 36, 16, 0),
+          //     child: Container(
+          //       padding: const EdgeInsets.symmetric(
+          //         horizontal: 14,
+          //         vertical: 12,
+          //       ),
+          //       decoration: BoxDecoration(
+          //         color: const Color.fromARGB(
+          //           255,
+          //           14,
+          //           26,
+          //           20,
+          //         ).withOpacity(0.95),
+          //         borderRadius: BorderRadius.circular(16),
+          //         border: Border.all(
+          //           color: const Color(0xFFC9963A).withOpacity(0.2),
+          //         ),
+          //         boxShadow: [
+          //           BoxShadow(
+          //             color: Colors.black.withOpacity(0.3),
+          //             blurRadius: 12,
+          //             offset: const Offset(0, 4),
+          //           ),
+          //         ],
+          //       ),
+          //       child: Row(
+          //         children: [
+          //           Icon(
+          //             Icons.search,
+          //             color: Colors.white.withOpacity(0.35),
+          //             size: 18,
+          //           ),
+          //           const SizedBox(width: 10),
+          //           Text(
+          //             "Find a mosque...",
+          //             style: TextStyle(
+          //               color: Colors.white.withOpacity(0.3),
+          //               fontSize: 14,
+          //               fontWeight: FontWeight.w400,
+          //             ),
+          //           ),
+          //         ],
+          //       ),
+          //     ),
+          //   ),
+          // ),
+
           // 0 for not in mosque, 1 for in mosque
-          mosqueStatus == 0
-              ? Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 120, 265, 0),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color.fromARGB(
-                        255,
-                        14,
-                        26,
-                        20,
-                      ).withOpacity(0.95),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: const Color(0xFFC9963A).withOpacity(0.2),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.3),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        const BlinkingDot(),
-                        SizedBox(width: 14),
-                        Text(
-                          "In mosque",
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.3),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              : SizedBox(),
+          // mosqueStatus == 0
+          //     ? Padding(
+          //         padding: const EdgeInsets.fromLTRB(16, 120, 265, 0),
+          //         child: Container(
+          //           padding: const EdgeInsets.symmetric(
+          //             horizontal: 14,
+          //             vertical: 12,
+          //           ),
+          //           decoration: BoxDecoration(
+          //             color: const Color.fromARGB(
+          //               255,
+          //               14,
+          //               26,
+          //               20,
+          //             ).withOpacity(0.95),
+          //             borderRadius: BorderRadius.circular(16),
+          //             border: Border.all(
+          //               color: const Color(0xFFC9963A).withOpacity(0.2),
+          //             ),
+          //             boxShadow: [
+          //               BoxShadow(
+          //                 color: Colors.black.withOpacity(0.3),
+          //                 blurRadius: 12,
+          //                 offset: const Offset(0, 4),
+          //               ),
+          //             ],
+          //           ),
+          //           child: Row(
+          //             children: [
+          //               const BlinkingDot(),
+          //               SizedBox(width: 14),
+          //               Text(
+          //                 "In mosque",
+          //                 style: TextStyle(
+          //                   color: Colors.white.withOpacity(0.3),
+          //                   fontSize: 14,
+          //                   fontWeight: FontWeight.w400,
+          //                 ),
+          //               ),
+          //             ],
+          //           ),
+          //         ),
+          //       )
+          //     : SizedBox(),
 
           // ✅ My location FAB
           Positioned(

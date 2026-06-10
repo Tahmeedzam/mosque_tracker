@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:mosque_tracker/services/auth_gate.dart';
+import 'package:mosque_tracker/services/foreground_service_manager.dart';
 import 'package:mosque_tracker/services/mosque.service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -18,6 +19,7 @@ void main() async {
   MosqueService().loadMosques();
   MosqueService().loadVisitedMosques();
 
+  ForegroundServiceManager.initialize();
   runApp(
     const ProviderScope(
       // ✅ wrap entire app in ProviderScope

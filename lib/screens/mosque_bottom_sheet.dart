@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mosque_tracker/screens/mosque_detail_modal.dart';
+import 'package:mosque_tracker/services/badge_service.dart';
 import 'package:mosque_tracker/services/mosque.service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -66,6 +67,8 @@ class _MosqueBottomSheetState extends State<MosqueBottomSheet> {
         'user_id': userId,
         'mosque_id': widget.mosque["id"],
       });
+
+      await BadgeService().grantNewBadge();
 
       await MosqueService().loadVisitedMosques(forceReload: true);
 

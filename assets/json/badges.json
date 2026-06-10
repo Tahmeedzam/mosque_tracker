@@ -1,0 +1,22 @@
+{
+  "badges": [
+    {
+      "id": "badge_first_step",
+      "name": "First Step",
+      "description": "Marked your very first mosque visit.",
+      "image_url": "https://cdn-icons-png.flaticon.com/512/7173/7173358.png"
+    },
+    {
+      "id": "badge_traveller",
+      "name": "Traveller",
+      "description": "Visited mosques in 3 or more unique cities.",
+      "image_url": "https://cdn-icons-png.flaticon.com/512/7173/7173358.png"
+    },
+    {
+      "id": "badge_ten",
+      "name": "Ten",
+      "description": "Visited 10 unique mosques",
+      "image_url": "https://cdn-icons-png.flaticon.com/512/7173/7173358.png"
+    }
+  ]
+}

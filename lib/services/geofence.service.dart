@@ -1,43 +1,17 @@
 import 'package:flutter/foundation.dart';
 import 'package:geofence_service/geofence_service.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:mosque_tracker/services/local_database_service.dart';
 import 'package:mosque_tracker/services/mosque.service.dart';
 
-// Both must be top-level functions outside the class
-@pragma('vm:entry-point')
-void notificationTapForeground(NotificationResponse response) async {
-  print(
-    "Foreground notification tapped — action: ${response.actionId}, payload: ${response.payload}",
-  );
-
-  if (response.actionId == "yes_prayed") {
-    final mosqueId = response.payload ?? "";
-    if (mosqueId.isEmpty) return;
-    await MosqueService().markMosqueVisited(mosqueId);
-    print("Mosque $mosqueId marked visited from foreground notification");
-  }
-}
-
-@pragma('vm:entry-point')
-void notificationTapBackground(NotificationResponse response) async {
-  print(
-    "Background notification tapped — action: ${response.actionId}, payload: ${response.payload}",
-  );
-
-  if (response.actionId == "yes_prayed") {
-    final mosqueId = response.payload ?? "";
-    if (mosqueId.isEmpty) return;
-    await MosqueService().markMosqueVisited(mosqueId);
-    print("Mosque $mosqueId marked visited from background notification");
-  }
-}
+// Both must be top-level functions outside the clas
 
 class MosqueGeofenceService {
   static final MosqueGeofenceService _instance =
       MosqueGeofenceService._internal();
   factory MosqueGeofenceService() => _instance;
   MosqueGeofenceService._internal();
+  Function(String mosqueId, String mosqueName, String triggeredAt)?
+  onDwellDetected;
 
   final _geofenceService = GeofenceService.instance.setup(
     interval: 5000, // check every 5 seconds
@@ -49,32 +23,10 @@ class MosqueGeofenceService {
     printDevLog: true,
   );
 
-  final _notifications = FlutterLocalNotificationsPlugin();
   bool _initialized = false;
 
   // Called from outside when visit is confirmed
   Function(String mosqueId, String mosqueName)? onPrayerConfirmed;
-
-  Future<void> initialize() async {
-    if (_initialized) return;
-
-    // Setup notifications
-    const androidSettings = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
-    );
-    const iosSettings = DarwinInitializationSettings();
-
-    await _notifications.initialize(
-      settings: const InitializationSettings(
-        android: androidSettings,
-        iOS: iosSettings,
-      ),
-      onDidReceiveNotificationResponse: notificationTapForeground,
-      onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
-    );
-
-    _initialized = true;
-  }
 
   Future<void> startGeofencing(List<Map<String, dynamic>> nearbyMosques) async {
     // Stop any existing geofencing first
@@ -114,33 +66,16 @@ class MosqueGeofenceService {
       if (MosqueService().isMosqueVisited(geofence.id)) return;
 
       final mosqueName = _getMosqueName(geofence.id);
+      final triggeredAt = DateTime.now().toIso8601String();
 
-      // Save to local DB
+      // Save to local DB always
       await LocalDatabaseService.instance.savePendingMosque(
         geofence.id,
         mosqueName,
       );
 
-      // Send simple notification — no action buttons
-      await _showSimpleNotification(mosqueName);
+      // If app is open, fire callback directly — skip notification
     }
-  }
-
-  Future<void> _showSimpleNotification(String mosqueName) async {
-    const androidDetails = AndroidNotificationDetails(
-      "prayer_prompt",
-      "Prayer Prompts",
-      channelDescription: "Prompts when you arrive at a mosque",
-      importance: Importance.high,
-      priority: Priority.high,
-    );
-
-    await _notifications.show(
-      id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      title: "You've been at $mosqueName",
-      body: "Tap to log your prayer",
-      notificationDetails: const NotificationDetails(android: androidDetails),
-    );
   }
 
   String _getMosqueName(String mosqueId) {
@@ -149,35 +84,6 @@ class MosqueGeofenceService {
       orElse: () => {"name": "this mosque"},
     );
     return mosque["name"].toString();
-  }
-
-  Future<void> _showPrayerPrompt(String mosqueId, String mosqueName) async {
-    const androidDetails = AndroidNotificationDetails(
-      "prayer_prompt",
-      "Prayer Prompts",
-      channelDescription: "Prompts when you arrive at a mosque",
-      importance: Importance.high,
-      priority: Priority.high,
-      actions: [
-        AndroidNotificationAction("yes_prayed", "✓ Yes, I prayed"),
-        AndroidNotificationAction("not_now", "Not this time"),
-      ],
-    );
-
-    const iosDetails = DarwinNotificationDetails(
-      categoryIdentifier: "prayer_prompt",
-    );
-
-    await _notifications.show(
-      id: mosqueId.hashCode,
-      title: "You've been at $mosqueName",
-      body: "Did you pray here today?",
-      notificationDetails: const NotificationDetails(
-        android: androidDetails,
-        iOS: iosDetails,
-      ),
-      payload: mosqueId,
-    );
   }
 
   Future<void> stop() async {
