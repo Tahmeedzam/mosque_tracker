@@ -16,7 +16,7 @@ void main() async {
     anonKey: dotenv.env["SUPABASE_ANON_KEY"]!,
     url: dotenv.env["SUPABASE_URL"]!,
   );
-  MosqueService().loadMosques();
+  // MosqueService().loadMosques();
   MosqueService().loadVisitedMosques();
 
   ForegroundServiceManager.initialize();

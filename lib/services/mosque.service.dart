@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
@@ -14,36 +13,169 @@ class MosqueService {
 
   List<Map<String, dynamic>> _mosques = [];
   List<Map<String, dynamic>> _visitedMosques = [];
+  List<Map<String, dynamic>> _visitedMaqam = [];
 
-  // Separate flags so loading all mosques doesn't block loading visited ones
-  bool _mosquesLoaded = false;
   bool _visitedLoaded = false;
+  bool _maqamLoaded = false;
 
-  // Getters - This solves the "Value isn't used" warning
   List<Map<String, dynamic>> get mosques => _mosques;
   List<Map<String, dynamic>> get visitedMosques => _visitedMosques;
-  bool get isLoaded => _mosquesLoaded;
 
-  Future<void> loadMosques({bool forceReload = false}) async {
-    if (_mosquesLoaded && !forceReload) return;
+  // ── Viewport-based fetch from Supabase using PostGIS ─────────────────────
+  Future<List<Map<String, dynamic>>> fetchMosquesByBbox({
+    required double south,
+    required double west,
+    required double north,
+    required double east,
+  }) async {
+    debugPrint("fetchMosquesByBbox called");
     try {
-      final response = await _supabase
-          .from('mosques')
-          .select(
-            'id, name, lat, lng, city, country, verified, status, women_allowed, has_wudu_area, has_parking, verified_count',
-          )
-          .order('name');
-
-      _mosques = List<Map<String, dynamic>>.from(response);
-      _mosquesLoaded = true;
+      final response = await _supabase.rpc(
+        'mosques_in_bbox',
+        params: {
+          'min_lat': south,
+          'min_lng': west,
+          'max_lat': north,
+          'max_lng': east,
+        },
+      );
+      debugPrint("RPC response type: ${response.runtimeType}");
+      final results = List<Map<String, dynamic>>.from(response);
+      debugPrint("fetchMosquesByBbox returned: ${results.length}");
+      return results;
     } catch (e) {
-      print("Error loading mosques: $e");
+      debugPrint("fetchMosquesByBbox ERROR: $e");
+      return [];
     }
   }
 
-  Future<void> loadVisitedMosques({bool forceReload = false}) async {
-    if (_visitedLoaded && !forceReload) return; // ✅ allow forced refresh
+  // ── Overpass fallback for areas with no Supabase data ────────────────────
+  Future<List<Map<String, dynamic>>> fetchMosquesFromOverpass({
+    required double south,
+    required double west,
+    required double north,
+    required double east,
+  }) async {
+    try {
+      final query =
+          '[out:json][timeout:30];('
+          'node["amenity"="place_of_worship"]["religion"="muslim"]($south,$west,$north,$east);'
+          'way["amenity"="place_of_worship"]["religion"="muslim"]($south,$west,$north,$east);'
+          'node["amenity"="mosque"]($south,$west,$north,$east);'
+          'way["amenity"="mosque"]($south,$west,$north,$east);'
+          ');out center tags;';
 
+      final response = await http.post(
+        Uri.parse("https://overpass-api.de/api/interpreter"),
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          "Accept": "application/json",
+        },
+        body: "data=${Uri.encodeQueryComponent(query)}",
+      );
+
+      if (response.statusCode != 200) {
+        debugPrint("Overpass error: ${response.statusCode}");
+        return [];
+      }
+
+      final data = jsonDecode(response.body);
+      final elements = data["elements"] as List;
+      final List<Map<String, dynamic>> mosques = [];
+
+      for (final element in elements) {
+        double? mosLat;
+        double? mosLng;
+
+        if (element["type"] == "node") {
+          mosLat = element["lat"]?.toDouble();
+          mosLng = element["lon"]?.toDouble();
+        } else if (element["center"] != null) {
+          mosLat = element["center"]["lat"]?.toDouble();
+          mosLng = element["center"]["lon"]?.toDouble();
+        }
+
+        if (mosLat == null || mosLng == null) continue;
+
+        final tags = element["tags"] ?? {};
+        final name = tags["name"] ?? tags["name:en"] ?? "Unnamed Mosque";
+
+        mosques.add({
+          "id": "osm_${element["type"]}_${element["id"]}",
+          "name": name,
+          "lat": mosLat,
+          "lng": mosLng,
+          "city": "",
+          "country": "",
+          "verified": false,
+          "status": "unknown",
+          "women_allowed": "unknown",
+          "has_wudu_area": null,
+          "has_parking": null,
+          "verified_count": 0,
+          "source": "overpass", // mark as temporary
+        });
+      }
+
+      debugPrint("Overpass returned ${mosques.length} mosques");
+      return mosques;
+    } catch (e) {
+      debugPrint("Overpass fetch error: $e");
+      return [];
+    }
+  }
+
+  // ── Main method called by map on every camera change ─────────────────────
+  Future<List<Map<String, dynamic>>> getMosquesForViewport({
+    required double south,
+    required double west,
+    required double north,
+    required double east,
+  }) async {
+    debugPrint(
+      "getMosquesForViewport called — S:$south W:$west N:$north E:$east",
+    );
+
+    final supabaseMosques = await fetchMosquesByBbox(
+      south: south,
+      west: west,
+      north: north,
+      east: east,
+    );
+
+    debugPrint("Supabase returned: ${supabaseMosques.length}");
+
+    if (supabaseMosques.length >= 3) {
+      _mosques = supabaseMosques;
+      return supabaseMosques;
+    }
+
+    debugPrint("Falling back to Overpass...");
+    final overpassMosques = await fetchMosquesFromOverpass(
+      south: south,
+      west: west,
+      north: north,
+      east: east,
+    );
+
+    debugPrint("Overpass returned: ${overpassMosques.length}");
+
+    final Map<String, Map<String, dynamic>> merged = {};
+    for (final m in supabaseMosques) merged[m["id"].toString()] = m;
+    for (final m in overpassMosques) {
+      if (!merged.containsKey(m["id"].toString()))
+        merged[m["id"].toString()] = m;
+    }
+
+    final result = merged.values.toList();
+    _mosques = result;
+    debugPrint("Total merged: ${result.length}");
+    return result;
+  }
+
+  // ── Visited mosques ───────────────────────────────────────────────────────
+  Future<void> loadVisitedMosques({bool forceReload = false}) async {
+    if (_visitedLoaded && !forceReload) return;
     try {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) return;
@@ -57,36 +189,35 @@ class MosqueService {
       _visitedMosques = List<Map<String, dynamic>>.from(response);
       _visitedLoaded = true;
     } catch (e) {
-      print("Error loading visited mosques: $e");
+      debugPrint("Error loading visited mosques: $e");
       _visitedMosques = [];
     }
   }
 
-  // Check if a specific mosque ID is in the visited list
   bool isMosqueVisited(String mosqueId) {
     return _visitedMosques.any(
       (m) => m['mosque_id'].toString() == mosqueId.toString(),
     );
   }
 
-  List<Map<String, dynamic>> getMosquesNearby(
-    double lat,
-    double lng, {
-    double offset = 0.15,
-  }) {
-    final south = lat - offset;
-    final north = lat + offset;
-    final west = lng - offset;
-    final east = lng + offset;
+  Future<void> markMosqueVisited(String mosqueId) async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) return;
+      if (isMosqueVisited(mosqueId)) return;
 
-    return _mosques.where((m) {
-      final mLat = (m['lat'] as num).toDouble();
-      final mLng = (m['lng'] as num).toDouble();
-      return mLat >= south && mLat <= north && mLng >= west && mLng <= east;
-    }).toList();
+      await _supabase.from('visitedMosque').insert({
+        "user_id": userId,
+        "mosque_id": mosqueId,
+      });
+
+      await loadVisitedMosques(forceReload: true);
+      debugPrint("Mosque $mosqueId marked as visited");
+    } catch (e) {
+      debugPrint("Error marking visited: $e");
+    }
   }
 
-  // In mosque.service.dart, add this method
   Future<Map<String, String>> getAddressFromLatLng(
     double lat,
     double lng,
@@ -105,8 +236,6 @@ class MosqueService {
 
       final feature = features.first;
       final address = feature["place_name"] as String? ?? "";
-
-      // Context array has city, region, country broken out
       final context = feature["context"] as List? ?? [];
       String city = "";
       String country = "";
@@ -124,24 +253,24 @@ class MosqueService {
     }
   }
 
-  Future<void> markMosqueVisited(String mosqueId) async {
+  //Maqam Services:
+  Future<void> loadPersonalMaqam({bool forceReload = false}) async {
+    if (_maqamLoaded && !forceReload) return;
     try {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) return;
 
-      // Don't insert if already visited
-      if (isMosqueVisited(mosqueId)) return;
+      final response = await _supabase
+          .from('personal_places')
+          .select('id, user_id, name')
+          .eq('user_id', userId)
+          .order('created_at');
 
-      await _supabase.from('visitedMosque').insert({
-        "user_id": userId,
-        "mosque_id": mosqueId,
-      });
-
-      // Reload visited list
-      await loadVisitedMosques(forceReload: true);
-      debugPrint("Mosque $mosqueId marked as visited");
+      _visitedMaqam = List<Map<String, dynamic>>.from(response);
+      _maqamLoaded = true;
     } catch (e) {
-      debugPrint("Error marking visited: $e");
+      debugPrint("Error loading visited mosques: $e");
+      _visitedMaqam = [];
     }
   }
 }

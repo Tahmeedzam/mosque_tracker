@@ -63,30 +63,30 @@ class MosqueTaskHandler extends TaskHandler {
         ?.createNotificationChannel(channel);
 
     // Load mosques
-    await MosqueService().loadMosques();
+    // await MosqueService().loadMosques();
     await MosqueService().loadVisitedMosques();
 
     // Get location
     final position = await geo.Geolocator.getCurrentPosition();
-    final nearby = MosqueService().getMosquesNearby(
-      position.latitude,
-      position.longitude,
-    );
+    // final nearby = MosqueService().getMosquesNearby(
+    //   position.latitude,
+    //   position.longitude,
+    // );
 
-    print("Background geofencing for ${nearby.length} mosques");
+    // print("Background geofencing for ${nearby.length} mosques");
 
-    // Build geofences
-    final geofences = nearby.map((mosque) {
-      return Geofence(
-        id: mosque["id"].toString(),
-        latitude: (mosque["lat"] as num).toDouble(),
-        longitude: (mosque["lng"] as num).toDouble(),
-        radius: [GeofenceRadius(id: "radius_${mosque["id"]}", length: 150)],
-      );
-    }).toList();
+    // // Build geofences
+    // final geofences = nearby.map((mosque) {
+    //   return Geofence(
+    //     id: mosque["id"].toString(),
+    //     latitude: (mosque["lat"] as num).toDouble(),
+    //     longitude: (mosque["lng"] as num).toDouble(),
+    //     radius: [GeofenceRadius(id: "radius_${mosque["id"]}", length: 150)],
+    //   );
+    // }).toList();
 
     _geofenceService.addGeofenceStatusChangeListener(_onGeofenceStatus);
-    await _geofenceService.start(geofences);
+    // await _geofenceService.start(geofences);
     await PrayerService().initialize();
     await PrayerService().fetchPrayerTimes();
   }

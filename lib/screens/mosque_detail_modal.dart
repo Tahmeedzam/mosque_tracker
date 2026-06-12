@@ -136,7 +136,7 @@ class _MosqueDetailModalState extends State<MosqueDetailModal> {
           .eq('id', _mosqueData["id"])
           .single();
 
-      await MosqueService().loadMosques(forceReload: true);
+      // await MosqueService().loadMosques(forceReload: true);
 
       if (mounted) {
         // preserve fields that don't exist in mosques table
@@ -183,7 +183,7 @@ class _MosqueDetailModalState extends State<MosqueDetailModal> {
           })
           .eq('id', _mosqueData["id"]);
 
-      await MosqueService().loadMosques();
+      // await MosqueService().loadMosques();
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -142,21 +142,21 @@ class _BadgesScreenState extends State<BadgesScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // ColorFiltered(
-                //   colorFilter: ColorFilter.mode(
-                //     isUnlocked ? Colors.transparent : Colors.grey,
-                //     BlendMode.saturation,
-                //   ),
-                //   child: Image.network(
-                //     badge['image_url'] ?? '',
-                //     height: 64,
-                //     errorBuilder: (_, __, ___) => const Icon(
-                //       Icons.workspace_premium,
-                //       size: 64,
-                //       color: Colors.white24,
-                //     ),
-                //   ),
-                // ),
+                SizedBox(
+                  width: 56,
+                  height: 56,
+                  child: Image.network(
+                    badge['image_url'] ?? '',
+                    width: 56,
+                    height: 56,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => const Icon(
+                      Icons.workspace_premium,
+                      size: 56,
+                      color: Colors.white24,
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 12),
                 Text(
                   badge['name'] ?? '',

@@ -811,6 +811,7 @@ class _EditField extends StatelessWidget {
             ),
           ),
         ),
+        Text("Version", style: TextStyle(fontSize: 12, color: Colors.white)),
       ],
     );
   }

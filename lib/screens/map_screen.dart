@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -38,9 +39,21 @@ class _MapScreenState extends State<MapScreen> {
   int? mosqueStatus;
   int totalMosque = 0;
   int visitedMosque = 0;
+  int visitedMaqam = 0;
   final _supabase = Supabase.instance.client;
   List<Map<String, dynamic>> _mosques = [];
   List<Map<String, dynamic>> _visitedMosques = [];
+  List<Map<String, dynamic>> _visitedMaqam = [];
+  Timer? _cameraDebounce;
+
+  bool _pinDropMode = false;
+  double _pinnedLat = 0.0;
+  double _pinnedLng = 0.0;
+  String _pendingAddType = '';
+
+  double _lastFetchLat = 0.0;
+  double _lastFetchLng = 0.0;
+  bool _isFetching = false;
   // List<Map<String, dynamic>> get visitedMosques => _visitedMosques;
 
   Future<geo.Position> _getCurrentLocation() async {
@@ -57,10 +70,6 @@ class _MapScreenState extends State<MapScreen> {
     if (permission == geo.LocationPermission.deniedForever) {
       return Future.error("Location permissions are permanently disabled");
     }
-    // if (await FlutterForegroundTask.checkNotificationPermission() !=
-    //     NotificationPermission.granted) {
-    //   await FlutterForegroundTask.requestNotificationPermission();
-    // }
 
     geo.Position value = await geo.Geolocator.getCurrentPosition();
     setState(() {
@@ -78,31 +87,246 @@ class _MapScreenState extends State<MapScreen> {
       ),
     );
 
-    await setMosquesData();
+    // Pass coordinates directly instead of relying on class variables
+    await setMosquesData(
+      overrideLat: value.latitude,
+      overrideLng: value.longitude,
+    );
     return value;
   }
 
-  Future<void> setMosquesData() async {
-    await Future.wait([
-      mosqueService.loadMosques(),
-      mosqueService.loadVisitedMosques(),
-    ]);
+  Future<void> setMosquesData({
+    double? overrideLat,
+    double? overrideLng,
+  }) async {
+    debugPrint(
+      "setMosquesData entry — isFetching: $_isFetching, lat: $lat, lng: $long",
+    );
+    if (_isFetching) return;
+    _isFetching = true;
 
-    final nearby = mosqueService.getMosquesNearby(lat, long);
+    final fetchLat = overrideLat ?? lat;
+    final fetchLng = overrideLng ?? long;
+
+    debugPrint("setMosquesData called — lat: $fetchLat, lng: $fetchLng");
+    final cameraState = await mapboxMapController!.getCameraState();
+    final zoom = cameraState.zoom;
+
+    // Larger bbox when zoomed out, smaller when zoomed in
+    double offset;
+    if (zoom < 10) {
+      offset = 0.5; // very zoomed out — load large area
+    } else if (zoom < 13) {
+      offset = 0.3; // medium zoom
+    } else {
+      offset = 0.15; // zoomed in — load small area
+    }
+    // const offset = 0.15;
+
+    final south = fetchLat - offset;
+    final north = fetchLat + offset;
+    final west = fetchLng - offset;
+    final east = fetchLng + offset;
+
+    debugPrint("BBox — S:$south W:$west N:$north E:$east");
+
+    await mosqueService.loadVisitedMosques();
+
+    final fetched = await mosqueService.getMosquesForViewport(
+      south: south,
+      west: west,
+      north: north,
+      east: east,
+    );
+
+    debugPrint("Fetched mosque count: ${fetched.length}");
+
+    _lastFetchLat = fetchLat;
+    _lastFetchLng = fetchLng;
+    _isFetching = false;
 
     if (mounted) {
-      setState(() => mosques = nearby);
-      await _addMosqueMarkers();
+      setState(() => mosques = fetched);
+      await _updateMarkers();
+      await _updateMaqamMarkers();
+    }
+  }
 
-      final activityPermission = await Permission.activityRecognition.request();
-      if (activityPermission.isDenied) {
-        debugPrint("Activity recognition permission denied");
-        return;
-      }
+  // New method — handles both first load and refresh
+  Future<void> _updateMarkers() async {
+    if (mapboxMapController == null || mosques.isEmpty) return;
+    debugPrint("_updateMarkers called with ${mosques.length} mosques");
 
-      // Start geofencing for nearby mosques only
-      await _geofenceService.startGeofencing(nearby);
-      await ForegroundServiceManager.start();
+    try {
+      await mapboxMapController!.style.setStyleSourceProperty(
+        "mosques-source",
+        "data",
+        _buildMosqueGeoJson(),
+      );
+      // Also update maqam source if it exists
+      try {
+        await mapboxMapController!.style.setStyleSourceProperty(
+          "maqam-source",
+          "data",
+          _buildMaqamGeoJson(),
+        );
+      } catch (_) {}
+      debugPrint("Sources updated successfully");
+      return;
+    } catch (e) {
+      debugPrint("Source update failed (first load): $e");
+    }
+
+    // First time setup
+    debugPrint("Doing first time marker setup");
+    try {
+      final visitedIcon = await _createMosqueIcon(true);
+      final unvisitedIcon = await _createMosqueIcon(false);
+      final maqamIcon = await _createMaqamIcon();
+
+      await mapboxMapController!.style.addStyleImage(
+        "mosque-visited",
+        1.0,
+        MbxImage(width: 80, height: 80, data: visitedIcon),
+        false,
+        [],
+        [],
+        null,
+      );
+      await mapboxMapController!.style.addStyleImage(
+        "mosque-unvisited",
+        1.0,
+        MbxImage(width: 80, height: 80, data: unvisitedIcon),
+        false,
+        [],
+        [],
+        null,
+      );
+      await mapboxMapController!.style.addStyleImage(
+        "maqam-icon",
+        1.0,
+        MbxImage(width: 80, height: 80, data: maqamIcon),
+        false,
+        [],
+        [],
+        null,
+      );
+      debugPrint("Icons added");
+
+      // Mosque source + layer
+      await mapboxMapController!.style.addSource(
+        GeoJsonSource(id: "mosques-source", data: _buildMosqueGeoJson()),
+      );
+      await mapboxMapController!.style.addLayer(
+        SymbolLayer(
+          id: "mosques-layer",
+          sourceId: "mosques-source",
+          iconImageExpression: ["get", "icon"],
+          iconSize: 0.6,
+          iconAllowOverlap: true,
+          textField: "{name}",
+          textSize: 10.0,
+          textOffset: [0.0, 2.2],
+          textAnchor: TextAnchor.TOP,
+          textColor: 0xFFE8B96A,
+          textHaloColor: 0xFF0F1A14,
+          textHaloWidth: 1.5,
+          textOptional: true,
+        ),
+      );
+
+      // Maqam source + layer — separate from mosques
+      await mapboxMapController!.style.addSource(
+        GeoJsonSource(id: "maqam-source", data: _buildMaqamGeoJson()),
+      );
+      await mapboxMapController!.style.addLayer(
+        SymbolLayer(
+          id: "maqam-layer",
+          sourceId: "maqam-source",
+          iconImage: "maqam-icon",
+          iconSize: 0.6,
+          iconAllowOverlap: true,
+          textField: "{name}",
+          textSize: 10.0,
+          textOffset: [0.0, 2.2],
+          textAnchor: TextAnchor.TOP,
+          textColor: 0xFFE8B96A,
+          textHaloColor: 0xFF0F1A14,
+          textHaloWidth: 1.5,
+          textOptional: true,
+        ),
+      );
+
+      _hidePOILayers();
+      mapboxMapController!.setOnMapTapListener(_onMapTap);
+      debugPrint("Setup complete");
+    } catch (e) {
+      debugPrint("First time setup ERROR: $e");
+    }
+  }
+
+  Future<void> _updateMaqamMarkers() async {
+    if (mapboxMapController == null || mosques.isEmpty) return;
+    debugPrint("_updateMarkers called with ${mosques.length} mosques");
+
+    try {
+      await mapboxMapController!.style.setStyleSourceProperty(
+        "mosques-source",
+        "data",
+        _buildMosqueGeoJson(),
+      );
+      debugPrint("Source updated successfully");
+      return;
+    } catch (e) {
+      debugPrint("Source update failed (expected on first load): $e");
+    }
+
+    // First time setup
+    debugPrint("Doing first time marker setup");
+    try {
+      final visitedIcon = await _createMaqamIcon();
+
+      await mapboxMapController!.style.addStyleImage(
+        "mosque-visited",
+        1.0,
+        MbxImage(width: 80, height: 80, data: visitedIcon),
+        false,
+        [],
+        [],
+        null,
+      );
+      debugPrint("Icons added");
+
+      await mapboxMapController!.style.addSource(
+        GeoJsonSource(id: "mosques-source", data: _buildMaqamGeoJson()),
+      );
+      debugPrint("Source added");
+
+      await mapboxMapController!.style.addLayer(
+        SymbolLayer(
+          id: "mosques-layer",
+          sourceId: "mosques-source",
+          iconImageExpression: ["get", "icon"],
+          iconSize: 0.6,
+          iconAllowOverlap: true,
+          // iconIgnorePlacement: true, // add this
+          textField: "{name}",
+          textSize: 10.0,
+          textOffset: [0.0, 2.2],
+          textAnchor: TextAnchor.TOP,
+          textColor: 0xFFE8B96A,
+          textHaloColor: 0xFF0F1A14,
+          textHaloWidth: 1.5,
+          textOptional: true,
+        ),
+      );
+      debugPrint("Layer added");
+
+      _hidePOILayers();
+      mapboxMapController!.setOnMapTapListener(_onMapTap);
+      debugPrint("Setup complete");
+    } catch (e) {
+      debugPrint("First time setup ERROR: $e");
     }
   }
 
@@ -157,6 +381,53 @@ class _MapScreenState extends State<MapScreen> {
     return byteData!.buffer.asUint8List();
   }
 
+  Future<Uint8List> _createMaqamIcon() async {
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    const size = 80.0;
+
+    final bgColor = const Color(0xFF9E5241); // Warm Terracotta / Brick Red
+    final borderColor = const Color(
+      0xFFC9963A,
+    ); // Kept the same for UI consistency!
+    final iconColor = const Color(0xFFF5E6CC); // Soft Warm Sand / Cream
+
+    final glowPaint = Paint()
+      ..color = const Color(0xFF9E5241).withOpacity(0.3)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
+    canvas.drawCircle(const Offset(size / 2, size / 2), 28, glowPaint);
+
+    final bgPaint = Paint()..color = bgColor;
+    canvas.drawCircle(const Offset(size / 2, size / 2), 22, bgPaint);
+
+    final borderPaint = Paint()
+      ..color = borderColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5;
+    canvas.drawCircle(const Offset(size / 2, size / 2), 22, borderPaint);
+
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: '🏠',
+        style: TextStyle(fontSize: 20, color: iconColor),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+    textPainter.layout();
+    textPainter.paint(
+      canvas,
+      Offset(
+        size / 2 - textPainter.width / 2,
+        size / 2 - textPainter.height / 2,
+      ),
+    );
+
+    final picture = recorder.endRecording();
+    final img = await picture.toImage(size.toInt(), size.toInt());
+    final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
+    return byteData!.buffer.asUint8List();
+  }
+
   Future<void> _addMosqueMarkers() async {
     if (mapboxMapController == null || mosques.isEmpty) return;
 
@@ -182,7 +453,52 @@ class _MapScreenState extends State<MapScreen> {
       null,
     );
 
-    final geoJson = _buildGeoJson();
+    final geoJson = _buildMosqueGeoJson();
+
+    await mapboxMapController!.style.addSource(
+      GeoJsonSource(id: "mosques-source", data: geoJson),
+    );
+
+    await mapboxMapController!.style.addLayer(
+      SymbolLayer(
+        id: "mosques-layer",
+        sourceId: "mosques-source",
+        iconImageExpression: ["get", "icon"],
+        iconSize: 0.6,
+        iconAllowOverlap: true,
+        textField: "{name}",
+        textSize: 10.0,
+        textOffset: [0.0, 2.2],
+        textAnchor: TextAnchor.TOP,
+        textColor: 0xFFE8B96A,
+        textHaloColor: 0xFF0F1A14,
+        textHaloWidth: 1.5,
+        // textAllowOverlap: false,
+        textOptional: true,
+      ),
+    );
+
+    _hidePOILayers();
+    mapboxMapController!.setOnMapTapListener(_onMapTap);
+    debugPrint("Markers added: ${mosques.length}");
+  }
+
+  Future<void> _addMaqamMarkers() async {
+    if (mapboxMapController == null || mosques.isEmpty) return;
+
+    final visitedIcon = await _createMaqamIcon();
+
+    await mapboxMapController!.style.addStyleImage(
+      "mosque-visited",
+      1.0,
+      MbxImage(width: 80, height: 80, data: visitedIcon),
+      false,
+      [],
+      [],
+      null,
+    );
+
+    final geoJson = _buildMaqamGeoJson();
 
     await mapboxMapController!.style.addSource(
       GeoJsonSource(id: "mosques-source", data: geoJson),
@@ -212,8 +528,40 @@ class _MapScreenState extends State<MapScreen> {
     debugPrint("Markers added: ${mosques.length}");
   }
 
+  void _getMaqamVisited() async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) return;
+
+      final response = await _supabase
+          .from('personal_places')
+          .select('id, user_id, name, lat, lng')
+          .eq('user_id', userId)
+          .order('created_at');
+
+      _visitedMaqam = List<Map<String, dynamic>>.from(response);
+      setState(() => visitedMaqam = _visitedMaqam.length);
+
+      // Update maqam layer if map is ready
+      if (mapboxMapController != null) {
+        try {
+          await mapboxMapController!.style.setStyleSourceProperty(
+            "maqam-source",
+            "data",
+            _buildMaqamGeoJson(),
+          );
+        } catch (_) {
+          // Layer not ready yet — will be added when _updateMarkers runs
+        }
+      }
+    } catch (e) {
+      debugPrint("Error loading maqam: $e");
+      _visitedMaqam = [];
+    }
+  }
+
   // ✅ NEW: builds a fresh GeoJSON string reflecting current visited state
-  String _buildGeoJson() {
+  String _buildMosqueGeoJson() {
     final features = mosques.map((mosque) {
       final mosqueId = mosque["id"].toString();
       final isVisited = mosqueService.isMosqueVisited(mosqueId);
@@ -235,12 +583,31 @@ class _MapScreenState extends State<MapScreen> {
     return jsonEncode({"type": "FeatureCollection", "features": features});
   }
 
+  String _buildMaqamGeoJson() {
+    final features = _visitedMaqam.map((maqam) {
+      return {
+        "type": "Feature",
+        "properties": {
+          "id": maqam["id"].toString(),
+          "name": maqam["name"] ?? "Maqam",
+          "icon": "maqam-icon",
+        },
+        "geometry": {
+          "type": "Point",
+          "coordinates": [maqam["lng"], maqam["lat"]],
+        },
+      };
+    }).toList();
+
+    return jsonEncode({"type": "FeatureCollection", "features": features});
+  }
+
   // ✅ NEW: called by the bottom sheet after a visit change.
   // Updates the GeoJSON source in-place — no layer rebuild needed.
   Future<void> _refreshMarkers() async {
     if (mapboxMapController == null) return;
 
-    final geoJson = _buildGeoJson();
+    final geoJson = _buildMosqueGeoJson();
 
     try {
       await mapboxMapController!.style.setStyleSourceProperty(
@@ -282,6 +649,7 @@ class _MapScreenState extends State<MapScreen> {
       ),
       RenderedQueryOptions(layerIds: ["mosques-layer"]),
     );
+    RenderedQueryOptions(layerIds: ["mosques-layer", "maqam-layer"]);
 
     if (features.isNotEmpty) {
       final feature = features.first?.queriedFeature.feature;
@@ -359,12 +727,14 @@ class _MapScreenState extends State<MapScreen> {
   void initState() {
     _getMosqueVisited();
     _getTotalMosque();
+    _getMaqamVisited();
     _getCurrentMosqueStatus();
     super.initState();
   }
 
   @override
   void dispose() {
+    _cameraDebounce?.cancel();
     _geofenceService.stop();
     super.dispose();
   }
@@ -428,6 +798,27 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+  void _getTotalMaqamVisited() async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) return;
+
+      final response = await _supabase
+          .from('personal_places')
+          .select('id, user_id, name')
+          .eq('user_id', userId)
+          .order('created_at');
+
+      _visitedMaqam = List<Map<String, dynamic>>.from(response);
+      setState(() {
+        visitedMaqam = _visitedMaqam.length;
+      });
+    } catch (e) {
+      print("Error loading visited mosques: $e");
+      _visitedMaqam = [];
+    }
+  }
+
   void _getTotalMosque() async {
     try {
       // 1. Request only the count from Supabase without downloading row data
@@ -448,6 +839,732 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
 
+  // ── Show add options sheet ─────────────────────────────────────────────────
+  void _showAddOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => Container(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+        decoration: const BoxDecoration(
+          color: Color(0xFF152419),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Drag handle
+            Center(
+              child: Container(
+                width: 36,
+                height: 3,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFC9963A).withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              "Add to map",
+              style: TextStyle(
+                fontFamily: 'Georgia',
+                fontSize: 18,
+                color: Color(0xFFF5F0E8),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Add mosque option
+            _AddOptionTile(
+              icon: "🕌",
+              title: "Add a Mosque",
+              subtitle: "Visible to all users on the map",
+              onTap: () {
+                Navigator.pop(context);
+                _showAddMosqueForm();
+              },
+            ),
+            const SizedBox(height: 10),
+
+            // Add personal place option
+            _AddOptionTile(
+              icon: "📍",
+              title: "Add a Maqam",
+              subtitle: "Your personal prayer spot, visible only to you",
+              onTap: () {
+                Navigator.pop(context);
+                _showAddPersonalPlaceForm();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Add mosque form ────────────────────────────────────────────────────────
+  void _showAddMosqueForm({double? useLat, double? useLng}) {
+    final nameController = TextEditingController();
+    bool isSubmitting = false;
+    bool useCurrentLocation = useLat == null;
+    double formLat = useLat ?? lat;
+    double formLng = useLng ?? long;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) => SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+              decoration: const BoxDecoration(
+                color: Color(0xFF152419),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 3,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFC9963A).withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    "Add a Mosque",
+                    style: TextStyle(
+                      fontFamily: 'Georgia',
+                      fontSize: 18,
+                      color: Color(0xFFF5F0E8),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Name field
+                  Text(
+                    "MOSQUE NAME",
+                    style: TextStyle(
+                      fontSize: 10,
+                      letterSpacing: 0.12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withOpacity(0.4),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  TextField(
+                    controller: nameController,
+                    autofocus: useLat == null,
+                    style: const TextStyle(
+                      color: Color(0xFFF5F0E8),
+                      fontSize: 14,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: "e.g. Masjid Al-Noor",
+                      hintStyle: TextStyle(
+                        color: Colors.white.withOpacity(0.2),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.06),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFF52B788)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Location selection
+                  Text(
+                    "LOCATION",
+                    style: TextStyle(
+                      fontSize: 10,
+                      letterSpacing: 0.12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withOpacity(0.4),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Current location option
+                  GestureDetector(
+                    onTap: () => setSheetState(() {
+                      useCurrentLocation = true;
+                      formLat = lat;
+                      formLng = long;
+                    }),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: useCurrentLocation
+                            ? const Color(0xFF2D6A4F).withOpacity(0.2)
+                            : Colors.white.withOpacity(0.04),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: useCurrentLocation
+                              ? const Color(0xFF52B788).withOpacity(0.4)
+                              : Colors.white.withOpacity(0.07),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.my_location_rounded,
+                            size: 16,
+                            color: useCurrentLocation
+                                ? const Color(0xFF52B788)
+                                : Colors.white.withOpacity(0.3),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Use my current location",
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: useCurrentLocation
+                                        ? const Color(0xFFF5F0E8)
+                                        : Colors.white.withOpacity(0.5),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Text(
+                                  "${lat.toStringAsFixed(5)}, ${long.toStringAsFixed(5)}",
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.white.withOpacity(0.3),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (useCurrentLocation)
+                            const Icon(
+                              Icons.check_circle_rounded,
+                              size: 16,
+                              color: Color(0xFF52B788),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Pin on map option
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      setState(() {
+                        _pinDropMode = true;
+                        _pendingAddType = 'mosque';
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: !useCurrentLocation
+                            ? const Color(0xFF2D6A4F).withOpacity(0.2)
+                            : Colors.white.withOpacity(0.04),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: !useCurrentLocation
+                              ? const Color(0xFF52B788).withOpacity(0.4)
+                              : Colors.white.withOpacity(0.07),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.location_pin,
+                            size: 16,
+                            color: !useCurrentLocation
+                                ? const Color(0xFF52B788)
+                                : Colors.white.withOpacity(0.3),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Pin on map",
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: !useCurrentLocation
+                                        ? const Color(0xFFF5F0E8)
+                                        : Colors.white.withOpacity(0.5),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Text(
+                                  useLat != null
+                                      ? "${useLat.toStringAsFixed(5)}, ${useLng!.toStringAsFixed(5)}"
+                                      : "Tap to place pin on map",
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.white.withOpacity(0.3),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            useLat != null
+                                ? Icons.check_circle_rounded
+                                : Icons.chevron_right_rounded,
+                            size: 16,
+                            color: useLat != null
+                                ? const Color(0xFF52B788)
+                                : Colors.white.withOpacity(0.2),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Submit
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextButton(
+                      onPressed: isSubmitting
+                          ? null
+                          : () async {
+                              if (nameController.text.trim().isEmpty) return;
+                              setSheetState(() => isSubmitting = true);
+                              await _submitMosque(
+                                nameController.text.trim(),
+                                submitLat: formLat,
+                                submitLng: formLng,
+                              );
+                              if (ctx.mounted) Navigator.pop(ctx);
+                            },
+                      style: TextButton.styleFrom(
+                        backgroundColor: const Color(0xFF2D6A4F),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: isSubmitting
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Color(0xFFF5F0E8),
+                              ),
+                            )
+                          : const Text(
+                              "Add Mosque",
+                              style: TextStyle(
+                                color: Color(0xFFF5F0E8),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Submit mosque to Supabase ──────────────────────────────────────────────
+  Future<void> _submitMosque(
+    String name, {
+    required double submitLat,
+    required double submitLng,
+  }) async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) return;
+
+      final address = await mosqueService.getAddressFromLatLng(
+        submitLat,
+        submitLng,
+      );
+
+      final newId = 'user_${userId}_${DateTime.now().millisecondsSinceEpoch}';
+
+      await _supabase.from('mosques').insert({
+        'id': newId,
+        'name': name,
+        'lat': submitLat,
+        'lng': submitLng,
+        'city': address['city'] ?? '',
+        'country': address['country'] ?? '',
+        'added_by': userId,
+        'verified': false,
+        'status': 'open',
+      });
+
+      await _supabase.rpc(
+        'update_mosque_location',
+        params: {'mosque_id': newId},
+      );
+
+      await setMosquesData(overrideLat: submitLat, overrideLng: submitLng);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Mosque added — JazakAllah Khair"),
+            backgroundColor: Color(0xFF2D6A4F),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint("Error adding mosque: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error: $e"),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
+  }
+
+  // ── Add personal place form ────────────────────────────────────────────────
+  void _showAddPersonalPlaceForm({double? useLat, double? useLng}) {
+    final nameController = TextEditingController();
+    bool isSubmitting = false;
+    bool useCurrentLocation = useLat == null;
+    double formLat = useLat ?? lat;
+    double formLng = useLng ?? long;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+            decoration: const BoxDecoration(
+              color: Color(0xFF152419),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 3,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFC9963A).withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  "Add a Maqam",
+                  style: TextStyle(
+                    fontFamily: 'Georgia',
+                    fontSize: 18,
+                    color: Color(0xFFF5F0E8),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  "Your personal prayer spot — only visible to you",
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.white.withOpacity(0.4),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                Text(
+                  "PLACE NAME",
+                  style: TextStyle(
+                    fontSize: 10,
+                    letterSpacing: 0.12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white.withOpacity(0.4),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: nameController,
+                  autofocus: true,
+                  style: const TextStyle(
+                    color: Color(0xFFF5F0E8),
+                    fontSize: 14,
+                  ),
+                  decoration: InputDecoration(
+                    hintText: "e.g. Home, Office, Dargah",
+                    hintStyle: TextStyle(color: Colors.white.withOpacity(0.2)),
+                    filled: true,
+                    fillColor: Colors.white.withOpacity(0.06),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFF52B788)),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: () => setSheetState(() {
+                    useCurrentLocation = true;
+                    formLat = lat;
+                    formLng = long;
+                  }),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: useCurrentLocation
+                          ? const Color(0xFF2D6A4F).withOpacity(0.2)
+                          : Colors.white.withOpacity(0.04),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: useCurrentLocation
+                            ? const Color(0xFF52B788).withOpacity(0.4)
+                            : Colors.white.withOpacity(0.07),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.my_location_rounded,
+                          size: 16,
+                          color: useCurrentLocation
+                              ? const Color(0xFF52B788)
+                              : Colors.white.withOpacity(0.3),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Use my current location",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: useCurrentLocation
+                                      ? const Color(0xFFF5F0E8)
+                                      : Colors.white.withOpacity(0.5),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                "${lat.toStringAsFixed(5)}, ${long.toStringAsFixed(5)}",
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.white.withOpacity(0.3),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (useCurrentLocation)
+                          const Icon(
+                            Icons.check_circle_rounded,
+                            size: 16,
+                            color: Color(0xFF52B788),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // Pin on map option
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    setState(() {
+                      _pinDropMode = true;
+                      _pendingAddType = 'personal';
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: !useCurrentLocation
+                          ? const Color(0xFF2D6A4F).withOpacity(0.2)
+                          : Colors.white.withOpacity(0.04),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: !useCurrentLocation
+                            ? const Color(0xFF52B788).withOpacity(0.4)
+                            : Colors.white.withOpacity(0.07),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.location_pin,
+                          size: 16,
+                          color: !useCurrentLocation
+                              ? const Color(0xFF52B788)
+                              : Colors.white.withOpacity(0.3),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Pin on map",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: !useCurrentLocation
+                                      ? const Color(0xFFF5F0E8)
+                                      : Colors.white.withOpacity(0.5),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                useLat != null
+                                    ? "${useLat.toStringAsFixed(5)}, ${useLng!.toStringAsFixed(5)}"
+                                    : "Tap to place pin on map",
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.white.withOpacity(0.3),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          useLat != null
+                              ? Icons.check_circle_rounded
+                              : Icons.chevron_right_rounded,
+                          size: 16,
+                          color: useLat != null
+                              ? const Color(0xFF52B788)
+                              : Colors.white.withOpacity(0.2),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton(
+                    onPressed: isSubmitting
+                        ? null
+                        : () async {
+                            if (nameController.text.trim().isEmpty) return;
+                            setSheetState(() => isSubmitting = true);
+                            await _submitPersonalPlace(
+                              nameController.text.trim(),
+                              submitLat: formLat,
+                              submitLng: formLng,
+                            );
+                            if (ctx.mounted) Navigator.pop(ctx);
+                          },
+                    style: TextButton.styleFrom(
+                      backgroundColor: const Color(0xFF1B4332),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        side: BorderSide(
+                          color: const Color(0xFFC9963A).withOpacity(0.3),
+                        ),
+                      ),
+                    ),
+                    child: isSubmitting
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Color(0xFFE8B96A),
+                            ),
+                          )
+                        : const Text(
+                            "Add Maqam",
+                            style: TextStyle(
+                              color: Color(0xFFE8B96A),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Submit personal place to Supabase ─────────────────────────────────────
+  Future<void> _submitPersonalPlace(
+    String name, {
+    required double submitLat,
+    required double submitLng,
+  }) async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) return;
+
+      await _supabase.from('personal_places').insert({
+        'user_id': userId,
+        'name': name,
+        'lat': submitLat,
+        'lng': submitLng,
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Maqam added"),
+            backgroundColor: Color(0xFF2D6A4F),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint("Error adding personal place: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -463,144 +1580,292 @@ class _MapScreenState extends State<MapScreen> {
             ),
             styleUri: "mapbox://styles/mapbox/dark-v11",
             onMapCreated: _onMapCreated,
+            onCameraChangeListener: (CameraChangedEventData data) {
+              _cameraDebounce?.cancel();
+              _cameraDebounce = Timer(
+                const Duration(milliseconds: 800),
+                () async {
+                  debugPrint("Camera settled");
+                  if (mapboxMapController == null) return;
+
+                  final centerLat = data.cameraState.center.coordinates.lat
+                      .toDouble();
+                  final centerLng = data.cameraState.center.coordinates.lng
+                      .toDouble();
+
+                  final distance = _calculateDistance(
+                    _lastFetchLat,
+                    _lastFetchLng,
+                    centerLat,
+                    centerLng,
+                  );
+
+                  debugPrint("Distance from last fetch: ${distance.round()}m");
+
+                  if (distance > 2000) {
+                    debugPrint("Fetching mosques for new area");
+                    await setMosquesData(
+                      overrideLat: centerLat,
+                      overrideLng: centerLng,
+                    );
+                  }
+                },
+              );
+            },
           ),
 
           SafeArea(
             child: Center(
               heightFactor: 1.5,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color.fromARGB(255, 14, 26, 20).withOpacity(0.4),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: const Color(0xFFC9963A).withOpacity(0.2),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
                     ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text("🕌", style: TextStyle(fontSize: 18)),
-                    SizedBox(width: 10),
-                    Text(
-                      "${visitedMosque} / ${totalMosque}",
-                      style: const TextStyle(
-                        fontFamily: 'Georgia',
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
-                        color: Color(0xFFF5F0E8),
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(
+                        255,
+                        14,
+                        26,
+                        20,
+                      ).withOpacity(0.4),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: const Color(0xFFC9963A).withOpacity(0.2),
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text("🕌", style: TextStyle(fontSize: 18)),
+                        SizedBox(width: 10),
+                        Text(
+                          "${visitedMosque}",
+                          style: const TextStyle(
+                            fontFamily: 'Georgia',
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFFF5F0E8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(
+                        255,
+                        14,
+                        26,
+                        20,
+                      ).withOpacity(0.4),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: const Color(0xFFC9963A).withOpacity(0.2),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text("🏠", style: TextStyle(fontSize: 18)),
+                        SizedBox(width: 10),
+                        Text(
+                          "${visitedMaqam}",
+                          style: const TextStyle(
+                            fontFamily: 'Georgia',
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: Color(0xFFF5F0E8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
 
-          // SafeArea(
-          //   child: Padding(
-          //     padding: const EdgeInsets.fromLTRB(16, 36, 16, 0),
-          //     child: Container(
-          //       padding: const EdgeInsets.symmetric(
-          //         horizontal: 14,
-          //         vertical: 12,
-          //       ),
-          //       decoration: BoxDecoration(
-          //         color: const Color.fromARGB(
-          //           255,
-          //           14,
-          //           26,
-          //           20,
-          //         ).withOpacity(0.95),
-          //         borderRadius: BorderRadius.circular(16),
-          //         border: Border.all(
-          //           color: const Color(0xFFC9963A).withOpacity(0.2),
-          //         ),
-          //         boxShadow: [
-          //           BoxShadow(
-          //             color: Colors.black.withOpacity(0.3),
-          //             blurRadius: 12,
-          //             offset: const Offset(0, 4),
-          //           ),
-          //         ],
-          //       ),
-          //       child: Row(
-          //         children: [
-          //           Icon(
-          //             Icons.search,
-          //             color: Colors.white.withOpacity(0.35),
-          //             size: 18,
-          //           ),
-          //           const SizedBox(width: 10),
-          //           Text(
-          //             "Find a mosque...",
-          //             style: TextStyle(
-          //               color: Colors.white.withOpacity(0.3),
-          //               fontSize: 14,
-          //               fontWeight: FontWeight.w400,
-          //             ),
-          //           ),
-          //         ],
-          //       ),
-          //     ),
-          //   ),
-          // ),
+          // Pin drop mode overlay
+          if (_pinDropMode)
+            Stack(
+              children: [
+                // Overlay hint + pin — ignore pointer so map stays interactive
+                IgnorePointer(
+                  child: Container(
+                    color: Colors.black.withOpacity(0.2),
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF152419).withOpacity(0.95),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: const Color(0xFFC9963A).withOpacity(0.4),
+                              ),
+                            ),
+                            child: const Text(
+                              "Move map to position the pin",
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Color(0xFFE8B96A),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          const Icon(
+                            Icons.location_pin,
+                            color: Color(0xFFC9963A),
+                            size: 48,
+                          ),
+                          const SizedBox(height: 48),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
 
-          // 0 for not in mosque, 1 for in mosque
-          // mosqueStatus == 0
-          //     ? Padding(
-          //         padding: const EdgeInsets.fromLTRB(16, 120, 265, 0),
-          //         child: Container(
-          //           padding: const EdgeInsets.symmetric(
-          //             horizontal: 14,
-          //             vertical: 12,
-          //           ),
-          //           decoration: BoxDecoration(
-          //             color: const Color.fromARGB(
-          //               255,
-          //               14,
-          //               26,
-          //               20,
-          //             ).withOpacity(0.95),
-          //             borderRadius: BorderRadius.circular(16),
-          //             border: Border.all(
-          //               color: const Color(0xFFC9963A).withOpacity(0.2),
-          //             ),
-          //             boxShadow: [
-          //               BoxShadow(
-          //                 color: Colors.black.withOpacity(0.3),
-          //                 blurRadius: 12,
-          //                 offset: const Offset(0, 4),
-          //               ),
-          //             ],
-          //           ),
-          //           child: Row(
-          //             children: [
-          //               const BlinkingDot(),
-          //               SizedBox(width: 14),
-          //               Text(
-          //                 "In mosque",
-          //                 style: TextStyle(
-          //                   color: Colors.white.withOpacity(0.3),
-          //                   fontSize: 14,
-          //                   fontWeight: FontWeight.w400,
-          //                 ),
-          //               ),
-          //             ],
-          //           ),
-          //         ),
-          //       )
-          //     : SizedBox(),
+                // Bottom buttons — these DO receive touches
+                Positioned(
+                  bottom: 100,
+                  left: 20,
+                  right: 20,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => setState(() => _pinDropMode = false),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.1),
+                              ),
+                            ),
+                            child: const Text(
+                              "Cancel",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color(0xFF9E9C97),
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () async {
+                            final cameraState = await mapboxMapController!
+                                .getCameraState();
+                            setState(() {
+                              _pinnedLat = cameraState.center.coordinates.lat
+                                  .toDouble();
+                              _pinnedLng = cameraState.center.coordinates.lng
+                                  .toDouble();
+                              _pinDropMode = false;
+                            });
+                            if (_pendingAddType == 'mosque') {
+                              _showAddMosqueForm(
+                                useLat: _pinnedLat,
+                                useLng: _pinnedLng,
+                              );
+                            } else {
+                              _showAddPersonalPlaceForm(
+                                useLat: _pinnedLat,
+                                useLng: _pinnedLng,
+                              );
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF2D6A4F),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: const Color(0xFF52B788).withOpacity(0.3),
+                              ),
+                            ),
+                            child: const Text(
+                              "Confirm Pin",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Color(0xFFF5F0E8),
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+          // ✅ Add button
+          Positioned(
+            right: 16,
+            bottom: 72, // sits above location FAB
+            child: GestureDetector(
+              onTap: _showAddOptions,
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF152419).withOpacity(0.97),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: const Color(0xFFC9963A).withOpacity(0.3),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.4),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.add_rounded,
+                  color: Color(0xFFC9963A),
+                  size: 22,
+                ),
+              ),
+            ),
+          ),
 
           // ✅ My location FAB
           Positioned(
@@ -654,6 +1919,69 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AddOptionTile extends StatelessWidget {
+  final String icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _AddOptionTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.04),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white.withOpacity(0.07)),
+        ),
+        child: Row(
+          children: [
+            Text(icon, style: const TextStyle(fontSize: 24)),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFFF5F0E8),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.white.withOpacity(0.4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: Colors.white.withOpacity(0.2),
+              size: 18,
+            ),
+          ],
+        ),
       ),
     );
   }
