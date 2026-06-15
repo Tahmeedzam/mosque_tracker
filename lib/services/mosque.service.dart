@@ -254,11 +254,10 @@ class MosqueService {
   }
 
   //Maqam Services:
-  Future<void> loadPersonalMaqam({bool forceReload = false}) async {
-    if (_maqamLoaded && !forceReload) return;
+  Future<int> loadPersonalMaqam() async {
     try {
       final userId = _supabase.auth.currentUser?.id;
-      if (userId == null) return;
+      if (userId == null) return 0;
 
       final response = await _supabase
           .from('personal_places')
@@ -268,9 +267,14 @@ class MosqueService {
 
       _visitedMaqam = List<Map<String, dynamic>>.from(response);
       _maqamLoaded = true;
+      if (_visitedMaqam.isNotEmpty) {
+        return _visitedMaqam.length;
+      }
+      return 0;
     } catch (e) {
       debugPrint("Error loading visited mosques: $e");
       _visitedMaqam = [];
+      return 0;
     }
   }
 }

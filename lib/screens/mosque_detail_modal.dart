@@ -170,34 +170,7 @@ class _MosqueDetailModalState extends State<MosqueDetailModal> {
     }
   }
 
-  Future<void> _verifyMosque() async {
-    try {
-      final userId = _supabase.auth.currentUser?.id;
-      await _supabase
-          .from('mosques')
-          .update({
-            'verified': true,
-            'verified_count': (_mosqueData["verified_count"] ?? 0) + 1,
-            'last_edited_by': userId,
-            'last_edited_at': DateTime.now().toIso8601String(),
-          })
-          .eq('id', _mosqueData["id"]);
-
-      // await MosqueService().loadMosques();
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Thank you for verifying this mosque"),
-            backgroundColor: Color(0xFF2D6A4F),
-          ),
-        );
-        Navigator.of(context).pop();
-      }
-    } catch (e) {
-      debugPrint("Verify error: $e");
-    }
-  }
+  void _reportMosque() {}
 
   String _timeAgo(DateTime date) {
     final diff = DateTime.now().difference(date);
@@ -295,15 +268,12 @@ class _MosqueDetailModalState extends State<MosqueDetailModal> {
   @override
   Widget build(BuildContext context) {
     final isVisited = _mosqueData["visited"] == true;
-    final isVerified = _mosqueData["verified"] == true;
     final location = _formatLocation();
     final distance = _formatDistance(_mosqueData["distance"]);
     final status = _mosqueData["status"] ?? "unknown";
     final womenAllowed = _mosqueData["women_allowed"] ?? "unknown";
     final hasWudu = _mosqueData["has_wudu_area"];
     final hasParking = _mosqueData["has_parking"];
-    final verifiedCount = _mosqueData["verified_count"] ?? 0;
-
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -598,19 +568,6 @@ class _MosqueDetailModalState extends State<MosqueDetailModal> {
                         const SizedBox(height: 12),
 
                         // Verified
-                        _InfoRow(
-                          icon: isVerified
-                              ? Icons.verified_outlined
-                              : Icons.help_outline,
-                          label: "Verified",
-                          value: isVerified
-                              ? "Verified by $verifiedCount ${verifiedCount == 1 ? 'person' : 'people'}"
-                              : "Not yet verified",
-                          valueColor: isVerified
-                              ? const Color(0xFF52B788)
-                              : const Color(0xFF9E9C97),
-                        ),
-                        const SizedBox(height: 12),
 
                         // People prayed here
                         _InfoRow(
@@ -647,49 +604,46 @@ class _MosqueDetailModalState extends State<MosqueDetailModal> {
                   const SizedBox(height: 16),
 
                   // ── Verify button ──────────────────────────────
-                  if (!isVerified)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-                      child: SizedBox(
-                        width: double.infinity,
-                        child: TextButton(
-                          onPressed: _verifyMosque,
-                          style: TextButton.styleFrom(
-                            backgroundColor: const Color(
-                              0xFFC9963A,
-                            ).withOpacity(0.15),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              side: BorderSide(
-                                color: const Color(
-                                  0xFFC9963A,
-                                ).withOpacity(0.35),
-                              ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: TextButton(
+                        onPressed: _reportMosque,
+                        style: TextButton.styleFrom(
+                          backgroundColor: const Color(
+                            0xFF7A2E2E,
+                          ).withOpacity(0.15),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(
+                              color: const Color(0xFF7A2E2E).withOpacity(0.35),
                             ),
                           ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.verified_outlined,
-                                size: 15,
-                                color: Color(0xFFE8B96A),
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.error_outline_outlined,
+                              size: 15,
+                              color: Color(0xFF7A2E2E),
+                            ),
+                            SizedBox(width: 7),
+                            Text(
+                              "Report This Mosque",
+                              style: TextStyle(
+                                color: Color(0xFF7A2E2E),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
                               ),
-                              SizedBox(width: 7),
-                              Text(
-                                "Verify this mosque",
-                                style: TextStyle(
-                                  color: Color(0xFFE8B96A),
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
+                  ),
 
                   // ── Footer quote ───────────────────────────────
                   Container(

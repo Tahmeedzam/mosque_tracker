@@ -19,6 +19,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Map<String, dynamic>? userData;
   bool isLoading = true;
+  int _totalMaqam = 0;
 
   @override
   void initState() {
@@ -38,8 +39,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           .eq('id', userId)
           .single();
 
+      // Load maqam count
+      final maqamCount = await mosqueService.loadPersonalMaqam();
+
       setState(() {
         userData = response;
+        _totalMaqam = maqamCount;
         isLoading = false;
       });
     } catch (e) {
@@ -133,6 +138,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     onLogout: _logout,
                     onEditProfile: () => _showEditProfileSheet(),
                     dateJoined: formattedDate,
+                    maqamVisited: _totalMaqam,
                   ),
                 ),
 
@@ -330,6 +336,7 @@ class _ProfileHeader extends StatelessWidget {
   final VoidCallback onLogout;
   final VoidCallback onEditProfile;
   final String? dateJoined;
+  final int maqamVisited;
 
   const _ProfileHeader({
     required this.userData,
@@ -339,6 +346,7 @@ class _ProfileHeader extends StatelessWidget {
     required this.onLogout,
     required this.onEditProfile,
     required this.dateJoined,
+    required this.maqamVisited,
   });
 
   @override
@@ -537,6 +545,15 @@ class _ProfileHeader extends StatelessWidget {
                     fontStyle: FontStyle.italic,
                   ),
                 ),
+                Text(
+                  'Date Joined: ${dateJoined.toString()}',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.white.withOpacity(0.5),
+                    height: 1.5,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
               ],
 
               const SizedBox(height: 20),
@@ -548,7 +565,7 @@ class _ProfileHeader extends StatelessWidget {
                   const SizedBox(width: 10),
                   _StatBox(number: uniqueCities.toString(), label: "Cities"),
                   const SizedBox(width: 10),
-                  _StatBox(number: dateJoined.toString(), label: "Joined"),
+                  _StatBox(number: maqamVisited.toString(), label: "Maqam"),
                 ],
               ),
             ],
