@@ -277,4 +277,13 @@ class MosqueService {
       return 0;
     }
   }
+
+  void clearCache() {
+    _mosques = [];
+    _visitedMosques = [];
+    _visitedMaqam = [];
+    _visitedLoaded = false;
+    _maqamLoaded = false;
+    debugPrint("MosqueService cache cleared");
+  }
 }

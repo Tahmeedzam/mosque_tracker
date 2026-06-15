@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:mosque_tracker/screens/profile_screen.dart';
+import 'package:mosque_tracker/services/mosque.service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthService {
@@ -79,6 +80,7 @@ class AuthService {
 
   //Sign out
   Future<void> signOut() async {
+    MosqueService().clearCache();
     await _supabase.auth.signOut();
   }
 
