@@ -165,6 +165,10 @@ class _PrayerTimeScreenState extends State<PrayerTimeScreen> {
                       ),
                     ),
                   ),
+                  // TextButton(
+                  //   onPressed: () => PrayerService().playAdhanNow(),
+                  //   child: const Text("Test Adhan Sound"),
+                  // ),
                 ],
               ),
               const SizedBox(height: 6),

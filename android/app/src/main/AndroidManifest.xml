@@ -8,11 +8,23 @@
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
-<uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
     <application
         android:label="mosque_tracker"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <receiver
+  android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
+  android:exported="false"/>
+<receiver
+  android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
+  android:exported="true">
+  <intent-filter>
+    <action android:name="android.intent.action.BOOT_COMPLETED"/>
+    <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+    <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
+  </intent-filter>
+</receiver>
         <service
   android:name="com.pravera.flutter_foreground_task.service.ForegroundTaskService"
   android:foregroundServiceType="location"

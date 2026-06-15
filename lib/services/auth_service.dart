@@ -66,6 +66,7 @@ class AuthService {
           'display_name': user.userMetadata?['full_name'] ?? '',
           'avatar_url': user.userMetadata?['avatar_url'] ?? '',
           'last_active': DateTime.now().toIso8601String(),
+          'onboarding_complete': true, // add this
         }, onConflict: 'id');
         return true;
       }

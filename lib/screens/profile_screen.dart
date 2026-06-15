@@ -361,6 +361,45 @@ class _ProfileHeader extends StatelessWidget {
     final bio = userData?['bio'] as String?;
     final homeCity = userData?['home_city'] as String?;
 
+    Future<void> showLogoutDialogBox() async {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: const Color(0xFF152419),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: const Color(0xFFC9963A).withOpacity(0.2)),
+          ),
+          title: const Text(
+            "Logout?",
+            style: TextStyle(color: Color(0xFFF5F0E8), fontFamily: 'Georgia'),
+          ),
+          content: Text(
+            "Are you sure you want to logout?",
+            style: const TextStyle(color: Color(0xFF9E9C97), fontSize: 13),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text(
+                "Cancel",
+                style: TextStyle(color: Color(0xFF52B788)),
+              ),
+            ),
+            TextButton(
+              onPressed: () => {Navigator.of(ctx).pop(), onLogout()},
+              child: const Text(
+                "Logout",
+                style: TextStyle(color: Colors.redAccent),
+              ),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed != true) return;
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF1B4332),
@@ -417,7 +456,7 @@ class _ProfileHeader extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       GestureDetector(
-                        onTap: onLogout,
+                        onTap: showLogoutDialogBox,
                         child: Container(
                           padding: const EdgeInsets.all(7),
                           decoration: BoxDecoration(
@@ -828,7 +867,6 @@ class _EditField extends StatelessWidget {
             ),
           ),
         ),
-        Text("Version", style: TextStyle(fontSize: 12, color: Colors.white)),
       ],
     );
   }
