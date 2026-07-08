@@ -43,7 +43,7 @@ class ForceUpdateScreen extends StatelessWidget {
                   onPressed: () async {
                     // Replace with your Play Store / App Store URL
                     final url = Uri.parse(
-                      'https://play.google.com/store/apps/details?id=com.example.mosque_tracker',
+                      'https://play.google.com/store/apps/details?id=com.zams.maqaam',
                     );
                     if (await canLaunchUrl(url)) {
                       await launchUrl(

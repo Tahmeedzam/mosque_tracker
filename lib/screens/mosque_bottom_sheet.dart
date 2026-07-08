@@ -60,21 +60,14 @@ class _MosqueBottomSheetState extends State<MosqueBottomSheet> {
     );
 
     try {
-      final userId = supabase.auth.currentUser?.id;
-      if (userId == null) throw "User not logged in";
+      final mosqueId = widget.mosque["id"].toString();
 
-      await supabase.from("visitedMosque").insert({
-        'user_id': userId,
-        'mosque_id': widget.mosque["id"],
-      });
-
+      await MosqueService().markMosqueVisited(mosqueId);
       await BadgeService().grantNewBadge();
-
-      await MosqueService().loadVisitedMosques(forceReload: true);
 
       if (mounted) {
         setState(() => isVisited = true);
-        widget.onVisitChanged(); // ✅ tell the map to refresh
+        widget.onVisitChanged();
       }
     } catch (e) {
       if (mounted) {
@@ -134,20 +127,13 @@ class _MosqueBottomSheetState extends State<MosqueBottomSheet> {
     );
 
     try {
-      final userId = supabase.auth.currentUser?.id;
-      if (userId == null) throw "User not logged in";
+      final mosqueId = widget.mosque["id"].toString();
 
-      await supabase
-          .from("visitedMosque")
-          .delete()
-          .eq('user_id', userId)
-          .eq('mosque_id', widget.mosque["id"]);
-
-      await MosqueService().loadVisitedMosques(forceReload: true);
+      await MosqueService().unmarkMosqueVisited(mosqueId);
 
       if (mounted) {
         setState(() => isVisited = false);
-        widget.onVisitChanged(); // ✅ tell the map to refresh
+        widget.onVisitChanged();
       }
     } catch (e) {
       if (mounted) {
@@ -281,13 +267,6 @@ class _MosqueBottomSheetState extends State<MosqueBottomSheet> {
                   icon: Icons.location_on_outlined,
                   label: widget.mosque["city"].toString(),
                 ),
-              const SizedBox(width: 8),
-              _MetaChip(
-                icon: widget.mosque["verified"]
-                    ? Icons.verified_outlined
-                    : Icons.dangerous_outlined,
-                label: widget.mosque["verified"] ? "Verified" : "Not Verified",
-              ),
             ],
           ),
           const SizedBox(height: 14),

@@ -16,7 +16,8 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+1
+#$Major.Minor.Patch$
+version: 1.0.0+2
 
 environment:
   sdk: ^3.11.4
@@ -35,6 +36,7 @@ dependencies:
   flutter_dotenv: ^6.0.1
   flutter_foreground_task: ^9.2.2
   flutter_local_notifications: ^21.0.0
+  flutter_native_splash: 2.4.7
   flutter_riverpod: ^3.3.1
   flutter_timezone: ^5.1.0
   geofence_service: ^6.0.0+1
@@ -56,6 +58,14 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.14.4
+  change_app_package_name: ^1.5.0
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/maqaam_appIcon.png"
+  adaptive_icon_forward: "assets/maqaam_appIcon.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -70,8 +80,15 @@ flutter:
     # - images/a_dot_burr.jpeg
     - .env
     - assets/mosques.json
+    - assets/badgesImages/
     - assets/audio/adhan.mp3
     - assets/json/badges.json
+    - assets/maqaam_png_logo.png
+    - assets/maqaam_playStore_logo.jpeg
+    - assets/maqaam_appIcon.png
+    - assets/badgesImages/firstStep_badge.png
+    - assets/badgesImages/ten_badge.png
+    - assets/badgesImages/traveller_badge.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
   # For details regarding adding assets from package dependencies, see
@@ -95,3 +112,14 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_native_splash:
+  color: "#1B4332"
+  image: assets/maqaam_png_logo.png
+  fullscreen: true
+  android: true
+  ios: true
+  web: false
+  android_12:
+    color: "#1B4332"
+    image: assets/maqaam_png_logo.png

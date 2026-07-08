@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:mosque_tracker/services/badge_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 class BadgesScreen extends StatefulWidget {
   const BadgesScreen({super.key});
@@ -32,10 +33,10 @@ class _BadgesScreenState extends State<BadgesScreen> {
   }
 
   Future<void> _loadData() async {
+    if (!mounted) return;
+
     try {
-      final jsonString = await DefaultAssetBundle.of(
-        context,
-      ).loadString('assets/json/badges.json');
+      final jsonString = await rootBundle.loadString('assets/json/badges.json');
 
       final Map<String, dynamic> jsonMap = jsonDecode(jsonString);
       final List<dynamic> localData = jsonMap['badges'];
@@ -155,10 +156,10 @@ class _BadgesScreenState extends State<BadgesScreen> {
                               // Image
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(12),
-                                child: Image.network(
+                                child: Image.asset(
                                   badge['image_url'] ?? '',
-                                  height: 102,
-                                  width: 56,
+                                  height: 64,
+                                  width: 64,
                                   fit: BoxFit.contain,
                                 ),
                               ),
@@ -241,7 +242,7 @@ class _BadgesScreenState extends State<BadgesScreen> {
                   SizedBox(
                     width: 56,
                     height: 56,
-                    child: Image.network(
+                    child: Image.asset(
                       badge['image_url'] ?? '',
                       width: 56,
                       height: 56,

@@ -49,9 +49,7 @@ class PrayerService {
     tz.setLocalLocation(tz.getLocation(timezoneName));
     debugPrint("Timezone set to: $timezoneName");
 
-    const androidSettings = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
-    );
+    const androidSettings = AndroidInitializationSettings('ic_notification');
     const iosSettings = DarwinInitializationSettings(
       requestSoundPermission: true,
       requestAlertPermission: true,

@@ -8,55 +8,47 @@ class BadgeService {
     final String userId = _supabase.auth.currentUser?.id ?? '';
     if (userId.isEmpty) return;
 
-    final visitedMosqueData = await _supabase
+    final visitedData = await _supabase
         .from("visitedMosque")
-        .select("*")
+        .select("mosque_id, mosque_city")
         .eq("user_id", userId);
 
-    int totalVisitedCount = visitedMosqueData.length;
+    final int totalVisited = visitedData.length;
 
-    // Set<String> uniqueCities = visitedMosqueData
-    //     .map((m) => m['city']?.toString().toLowerCase() ?? '')
-    //     .where((city) => city.isNotEmpty)
-    //     .toSet();
+    // Unique cities directly from denormalized field
+    final uniqueCities = visitedData
+        .map((m) => m['mosque_city']?.toString().toLowerCase() ?? '')
+        .where((city) => city.isNotEmpty)
+        .toSet();
 
-    final List<dynamic> serverBadges = await _supabase
+    final serverBadges = await _supabase
         .from('user_badges')
         .select('badge_id')
         .eq('user_id', userId);
 
-    List<String> alreadyUnlockedIds = serverBadges
+    final List<String> alreadyUnlocked = serverBadges
         .map((b) => b['badge_id'].toString())
         .toList();
 
-    List<String> badgesToUnlockNow = [];
+    final List<String> toUnlock = [];
 
-    //Badge: First step - Unlock first mosque
-    if (totalVisitedCount > 0 &&
-        !alreadyUnlockedIds.contains("badge_first_step")) {
-      badgesToUnlockNow.add("badge_first_step");
+    if (totalVisited >= 1 && !alreadyUnlocked.contains("badge_first_step")) {
+      toUnlock.add("badge_first_step");
     }
-    //Badge: Ten - Unlock 10 mosque
-    if (totalVisitedCount >= 10 && !alreadyUnlockedIds.contains("badge_ten")) {
-      badgesToUnlockNow.add("badge_ten");
+    if (totalVisited >= 10 && !alreadyUnlocked.contains("badge_ten")) {
+      toUnlock.add("badge_ten");
     }
-    //Badge: Traveller - Visit 3 unique cities
-    // if (uniqueCities.length >= 3 &&
-    //     alreadyUnlockedIds.contains("badge_traveller")) {
-    //   badgesToUnlockNow.add("badge_traveller");
-    // }
+    if (uniqueCities.length >= 3 &&
+        !alreadyUnlocked.contains("badge_traveller")) {
+      toUnlock.add("badge_traveller");
+    }
 
-    if (badgesToUnlockNow.isNotEmpty) {
-      for (String badgeId in badgesToUnlockNow) {
-        await _supabase.from('user_badges').insert({
-          'user_id': userId,
-          'badge_id': badgeId,
-        });
-
-        // 💥 Put your trigger for your unlock overlay animation here!
-
-        print("🎉 UNLOCKED NEW BADGE: $badgeId");
-      }
+    for (final badgeId in toUnlock) {
+      await _supabase.from('user_badges').insert({
+        'user_id': userId,
+        'badge_id': badgeId,
+      });
+      print("Badge unlocked: $badgeId");
     }
   }
 }

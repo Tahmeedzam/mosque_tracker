@@ -56,73 +56,113 @@ class MosqueService {
     required double north,
     required double east,
   }) async {
-    try {
-      final query =
-          '[out:json][timeout:30];('
-          'node["amenity"="place_of_worship"]["religion"="muslim"]($south,$west,$north,$east);'
-          'way["amenity"="place_of_worship"]["religion"="muslim"]($south,$west,$north,$east);'
-          'node["amenity"="mosque"]($south,$west,$north,$east);'
-          'way["amenity"="mosque"]($south,$west,$north,$east);'
-          ');out center tags;';
+    final endpoints = [
+      "https://maps.mail.ru/osm/tools/overpass/api/interpreter", // known working — try first
+      "https://overpass.private.coffee/api/interpreter",
+      "https://overpass.kumi.systems/api/interpreter",
+      "https://overpass-api.de/api/interpreter",
+    ];
 
-      final response = await http.post(
-        Uri.parse("https://overpass-api.de/api/interpreter"),
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          "Accept": "application/json",
-        },
-        body: "data=${Uri.encodeQueryComponent(query)}",
-      );
+    final query =
+        '[out:json][timeout:25];('
+        'node["amenity"="place_of_worship"]["religion"="muslim"]($south,$west,$north,$east);'
+        'way["amenity"="place_of_worship"]["religion"="muslim"]($south,$west,$north,$east);'
+        'node["amenity"="mosque"]($south,$west,$north,$east);'
+        'way["amenity"="mosque"]($south,$west,$north,$east);'
+        ');out center tags;';
 
-      if (response.statusCode != 200) {
-        debugPrint("Overpass error: ${response.statusCode}");
-        return [];
-      }
+    for (final endpoint in endpoints) {
+      try {
+        debugPrint("Trying Overpass endpoint: $endpoint");
 
-      final data = jsonDecode(response.body);
-      final elements = data["elements"] as List;
-      final List<Map<String, dynamic>> mosques = [];
+        final response = await http
+            .post(
+              Uri.parse(endpoint),
+              headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "application/json",
+              },
+              body: "data=${Uri.encodeQueryComponent(query)}",
+            )
+            .timeout(const Duration(seconds: 8)); // reduced timeout
 
-      for (final element in elements) {
-        double? mosLat;
-        double? mosLng;
+        if (response.statusCode != 200) {
+          debugPrint("$endpoint returned ${response.statusCode} — trying next");
+          continue;
+        }
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          final elements = data["elements"] as List;
 
-        if (element["type"] == "node") {
-          mosLat = element["lat"]?.toDouble();
-          mosLng = element["lon"]?.toDouble();
-        } else if (element["center"] != null) {
-          mosLat = element["center"]["lat"]?.toDouble();
-          mosLng = element["center"]["lon"]?.toDouble();
+          // Get city/country once for this whole batch using bbox center
+          final centerLat = (south + north) / 2;
+          final centerLng = (west + east) / 2;
+          final address = await getAddressFromLatLng(centerLat, centerLng);
+
+          return _parseOverpassElements(
+            elements,
+            address["city"] ?? "",
+            address["country"] ?? "",
+          );
         }
 
-        if (mosLat == null || mosLng == null) continue;
+        final data = jsonDecode(response.body);
+        final elements = data["elements"] as List;
 
-        final tags = element["tags"] ?? {};
-        final name = tags["name"] ?? tags["name:en"] ?? "Unnamed Mosque";
+        debugPrint("Success via $endpoint — ${elements.length} elements");
+      } catch (e) {
+        debugPrint("$endpoint failed: $e — trying next");
+        continue;
+      }
+    }
 
-        mosques.add({
-          "id": "osm_${element["type"]}_${element["id"]}",
-          "name": name,
-          "lat": mosLat,
-          "lng": mosLng,
-          "city": "",
-          "country": "",
-          "verified": false,
-          "status": "unknown",
-          "women_allowed": "unknown",
-          "has_wudu_area": null,
-          "has_parking": null,
-          "verified_count": 0,
-          "source": "overpass", // mark as temporary
-        });
+    debugPrint("All Overpass endpoints failed or rate limited");
+    return [];
+  }
+
+  List<Map<String, dynamic>> _parseOverpassElements(
+    List elements,
+    String city,
+    String country,
+  ) {
+    final List<Map<String, dynamic>> mosques = [];
+
+    for (final element in elements) {
+      double? mosLat;
+      double? mosLng;
+
+      if (element["type"] == "node") {
+        mosLat = element["lat"]?.toDouble();
+        mosLng = element["lon"]?.toDouble();
+      } else if (element["center"] != null) {
+        mosLat = element["center"]["lat"]?.toDouble();
+        mosLng = element["center"]["lon"]?.toDouble();
       }
 
-      debugPrint("Overpass returned ${mosques.length} mosques");
-      return mosques;
-    } catch (e) {
-      debugPrint("Overpass fetch error: $e");
-      return [];
+      if (mosLat == null || mosLng == null) continue;
+
+      final tags = element["tags"] ?? {};
+      final name = tags["name"] ?? tags["name:en"] ?? "Unnamed Mosque";
+
+      mosques.add({
+        "id": "osm_${element["type"]}_${element["id"]}",
+        "name": name,
+        "lat": mosLat,
+        "lng": mosLng,
+        "city": city, // now populated
+        "country": country, // now populated
+        "verified": false,
+        "status": "unknown",
+        "women_allowed": "unknown",
+        "has_wudu_area": null,
+        "has_parking": null,
+        "verified_count": 0,
+        "source": "overpass",
+      });
     }
+
+    debugPrint("Parsed ${mosques.length} mosques from Overpass");
+    return mosques;
   }
 
   // ── Main method called by map on every camera change ─────────────────────
@@ -176,13 +216,16 @@ class MosqueService {
   // ── Visited mosques ───────────────────────────────────────────────────────
   Future<void> loadVisitedMosques({bool forceReload = false}) async {
     if (_visitedLoaded && !forceReload) return;
+
     try {
       final userId = _supabase.auth.currentUser?.id;
       if (userId == null) return;
 
       final response = await _supabase
           .from('visitedMosque')
-          .select('id, mosque_id, visited_at')
+          .select(
+            'id, mosque_id, mosque_name, mosque_city, mosque_country, mosque_lat, mosque_lng, visited_at',
+          )
           .eq('user_id', userId)
           .order('visited_at');
 
@@ -206,15 +249,49 @@ class MosqueService {
       if (userId == null) return;
       if (isMosqueVisited(mosqueId)) return;
 
+      debugPrint(
+        "Looking for mosque $mosqueId in _mosques (count: ${_mosques.length})",
+      );
+
+      final mosque = _mosques.firstWhere(
+        (m) => m["id"].toString() == mosqueId,
+        orElse: () => {},
+      );
+
+      debugPrint("Found mosque data: $mosque");
+
       await _supabase.from('visitedMosque').insert({
         "user_id": userId,
         "mosque_id": mosqueId,
+        "mosque_name": mosque["name"] ?? "Unknown Mosque",
+        "mosque_city": mosque["city"] ?? "",
+        "mosque_country": mosque["country"] ?? "",
+        "mosque_lat": mosque["lat"],
+        "mosque_lng": mosque["lng"],
       });
 
       await loadVisitedMosques(forceReload: true);
       debugPrint("Mosque $mosqueId marked as visited");
     } catch (e) {
       debugPrint("Error marking visited: $e");
+    }
+  }
+
+  Future<void> unmarkMosqueVisited(String mosqueId) async {
+    try {
+      final userId = _supabase.auth.currentUser?.id;
+      if (userId == null) return;
+
+      await _supabase
+          .from("visitedMosque")
+          .delete()
+          .eq('user_id', userId)
+          .eq('mosque_id', mosqueId);
+
+      await loadVisitedMosques(forceReload: true);
+      debugPrint("Mosque $mosqueId unmarked as visited");
+    } catch (e) {
+      debugPrint("Error unmarking visited: $e");
     }
   }
 

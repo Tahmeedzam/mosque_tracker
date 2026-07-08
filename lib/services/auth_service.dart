@@ -91,4 +91,26 @@ class AuthService {
     final user = session?.user;
     return user?.email;
   }
+
+  Future<bool> deleteAccount() async {
+    try {
+      final session = _supabase.auth.currentSession;
+      if (session == null) return false;
+
+      final response = await _supabase.functions.invoke(
+        'delete-account',
+        headers: {'Authorization': 'Bearer ${session.accessToken}'},
+      );
+
+      if (response.status == 200) {
+        MosqueService().clearCache();
+        await _supabase.auth.signOut();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint("Delete account error: $e");
+      return false;
+    }
+  }
 }

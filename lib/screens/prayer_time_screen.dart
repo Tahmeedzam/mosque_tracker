@@ -528,7 +528,8 @@ class _PrayerTimeScreenState extends State<PrayerTimeScreen> {
             "Prayer times are calculated using the Muslim World League method, "
             "which is widely accepted for international use. Times are based on "
             "your current GPS location and may vary slightly from your local mosque. "
-            "Sehri time corresponds to Fajr, and Iftaar corresponds to Maghrib. ",
+            "Sehri time corresponds to Fajr, and Iftaar corresponds to Maghrib. "
+            "Open the app daily to schedule today's Adhan.",
             style: TextStyle(
               fontSize: 12,
               color: Colors.white.withOpacity(0.4),

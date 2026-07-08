@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mosque_tracker/screens/report_form_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:mosque_tracker/services/mosque.service.dart';
 
@@ -170,7 +171,21 @@ class _MosqueDetailModalState extends State<MosqueDetailModal> {
     }
   }
 
-  void _reportMosque() {}
+  void _reportMosque() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ReportFormScreen(
+          type: 'mosque_issue',
+          title: 'Mosque Data Issue',
+          subtitle: 'Tell us the mosque name and what\'s wrong',
+          placeholder: 'e.g. Masjid Al-Noor shows the wrong location...',
+          mosqueName: _mosqueData["name"].toString(),
+          mosqueId: _mosqueData["id"].toString(),
+        ),
+      ),
+    );
+  }
 
   String _timeAgo(DateTime date) {
     final diff = DateTime.now().difference(date);
@@ -628,13 +643,13 @@ class _MosqueDetailModalState extends State<MosqueDetailModal> {
                             Icon(
                               Icons.error_outline_outlined,
                               size: 15,
-                              color: Color(0xFF7A2E2E),
+                              color: Color.fromARGB(255, 194, 74, 74),
                             ),
                             SizedBox(width: 7),
                             Text(
                               "Report This Mosque",
                               style: TextStyle(
-                                color: Color(0xFF7A2E2E),
+                                color: Color.fromARGB(255, 194, 74, 74),
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
                               ),

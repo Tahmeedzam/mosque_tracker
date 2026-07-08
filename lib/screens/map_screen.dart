@@ -26,6 +26,8 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
+  bool _isLoadingOverpass = false;
+
   final _geofenceService = MosqueGeofenceService();
   double lat = 0.0;
   double long = 0.0;
@@ -103,7 +105,9 @@ class _MapScreenState extends State<MapScreen> {
       "setMosquesData entry — isFetching: $_isFetching, lat: $lat, lng: $long",
     );
     if (_isFetching) return;
+    if (!mounted) return; // add this
     _isFetching = true;
+    setState(() => _isLoadingOverpass = true);
 
     final fetchLat = overrideLat ?? lat;
     final fetchLng = overrideLng ?? long;
@@ -144,9 +148,13 @@ class _MapScreenState extends State<MapScreen> {
     _lastFetchLat = fetchLat;
     _lastFetchLng = fetchLng;
     _isFetching = false;
+    if (!mounted) return;
 
     if (mounted) {
-      setState(() => mosques = fetched);
+      setState(() {
+        mosques = fetched;
+        _isLoadingOverpass = false; // add this
+      });
       await _updateMarkers();
       await _updateMaqamMarkers();
     }
@@ -1707,6 +1715,49 @@ class _MapScreenState extends State<MapScreen> {
               ),
             ),
           ),
+
+          if (_isLoadingOverpass)
+            Positioned(
+              top: 100,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF152419).withOpacity(0.95),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: const Color(0xFFC9963A).withOpacity(0.3),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(
+                        width: 12,
+                        height: 12,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 1.5,
+                          color: Color(0xFF52B788),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        "Finding mosques nearby...",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white.withOpacity(0.6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
 
           // Pin drop mode overlay
           if (_pinDropMode)

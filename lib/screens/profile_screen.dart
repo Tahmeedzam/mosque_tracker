@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:mosque_tracker/screens/contact_screen.dart';
+import 'package:mosque_tracker/screens/login_screen.dart';
 import 'package:mosque_tracker/services/auth_service.dart';
 import 'package:mosque_tracker/services/mosque.service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -39,17 +41,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
           .eq('id', userId)
           .single();
 
-      // Load maqam count
+      debugPrint("About to call loadPersonalMaqam");
       final maqamCount = await mosqueService.loadPersonalMaqam();
+      debugPrint("loadPersonalMaqam returned: $maqamCount");
+
+      if (!mounted) {
+        debugPrint("Widget unmounted before setState — aborting");
+        return;
+      }
 
       setState(() {
         userData = response;
         _totalMaqam = maqamCount;
         isLoading = false;
       });
-    } catch (e) {
-      setState(() => isLoading = false);
+
+      debugPrint("setState completed — isLoading: $isLoading");
+    } catch (e, stack) {
       debugPrint("Error loading user: $e");
+      debugPrint("Stack: $stack");
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
@@ -104,20 +115,95 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint("Profile build called — isLoading: $isLoading");
     final visited = mosqueService.visitedMosques;
     final totalVisited = visited.length;
 
     // Count unique cities from visited mosques
-    final visitedIds = visited.map((v) => v['mosque_id'].toString()).toSet();
-    final visitedMosqueData = mosqueService.mosques
-        .where((m) => visitedIds.contains(m['id'].toString()))
-        .toList();
-    final uniqueCities = visitedMosqueData
-        .map((m) => m['city']?.toString() ?? '')
+    final uniqueCities = visited
+        .map((v) => v['mosque_city']?.toString() ?? '')
         .where((c) => c.isNotEmpty)
         .toSet()
         .length;
 
+    Future<void> _handleDeleteAccount() async {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(
+          child: CircularProgressIndicator(color: Color(0xFF52B788)),
+        ),
+      );
+
+      final success = await authService.deleteAccount();
+
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
+
+      if (success && mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+          (route) => false,
+        );
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Failed to delete account. Please try again or contact support.",
+            ),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
+
+    void _showDeleteConfirmation() {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: const Color(0xFF152419),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: Colors.redAccent.withOpacity(0.2)),
+          ),
+          title: const Text(
+            "Delete your account?",
+            style: TextStyle(color: Color(0xFFF5F0E8), fontFamily: 'Georgia'),
+          ),
+          content: const Text(
+            "This will permanently delete your account, prayer journey, badges, and all personal data. This cannot be undone.",
+            style: TextStyle(
+              color: Color(0xFF9E9C97),
+              fontSize: 13,
+              height: 1.5,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text(
+                "Cancel",
+                style: TextStyle(color: Color(0xFF52B788)),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(ctx).pop();
+                await _handleDeleteAccount();
+              },
+              child: const Text(
+                "Delete",
+                style: TextStyle(color: Colors.redAccent),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    debugPrint(
+      "About to build Scaffold — userData: $userData, totalVisited: $totalVisited, totalMaqam: $_totalMaqam, formattedDate: $formattedDate",
+    );
     return Scaffold(
       backgroundColor: const Color(0xFF0F1A14),
       body: isLoading
@@ -139,6 +225,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     onEditProfile: () => _showEditProfileSheet(),
                     dateJoined: formattedDate,
                     maqamVisited: _totalMaqam,
+                    onDeleteAccount: () => _showDeleteConfirmation(),
                   ),
                 ),
 
@@ -203,13 +290,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     : SliverList(
                         delegate: SliverChildBuilderDelegate((context, index) {
                           final visit = visited[index];
+                          final name = visit['mosque_name'] ?? 'Unknown Mosque';
+                          final city = visit['mosque_city'] ?? '';
                           final mosqueId = visit['mosque_id'].toString();
                           final mosqueData = mosqueService.mosques.firstWhere(
                             (m) => m['id'].toString() == mosqueId,
                             orElse: () => {},
                           );
-                          final name = mosqueData['name'] ?? 'Unknown Mosque';
-                          final city = mosqueData['city'] ?? '';
                           final visitedAt = visit['visited_at'] != null
                               ? DateTime.parse(visit['visited_at'])
                               : null;
@@ -337,6 +424,7 @@ class _ProfileHeader extends StatelessWidget {
   final VoidCallback onEditProfile;
   final String? dateJoined;
   final int maqamVisited;
+  final VoidCallback onDeleteAccount;
 
   const _ProfileHeader({
     required this.userData,
@@ -347,6 +435,7 @@ class _ProfileHeader extends StatelessWidget {
     required this.onEditProfile,
     required this.dateJoined,
     required this.maqamVisited,
+    required this.onDeleteAccount,
   });
 
   @override
@@ -374,9 +463,9 @@ class _ProfileHeader extends StatelessWidget {
             "Logout?",
             style: TextStyle(color: Color(0xFFF5F0E8), fontFamily: 'Georgia'),
           ),
-          content: Text(
+          content: const Text(
             "Are you sure you want to logout?",
-            style: const TextStyle(color: Color(0xFF9E9C97), fontSize: 13),
+            style: TextStyle(color: Color(0xFF9E9C97), fontSize: 13),
           ),
           actions: [
             TextButton(
@@ -401,14 +490,7 @@ class _ProfileHeader extends StatelessWidget {
     }
 
     return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF1B4332),
-        // image: const DecorationImage(
-        //   image: AssetImage('assets/pattern.png'),
-        //   fit: BoxFit.cover,
-        //   opacity: 0.06,
-        // ),
-      ),
+      decoration: const BoxDecoration(color: Color(0xFF1B4332)),
       child: SafeArea(
         bottom: false,
         child: Padding(
@@ -416,7 +498,7 @@ class _ProfileHeader extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top row — logout button
+              // Top row — PROFILE label + icon buttons
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -454,7 +536,30 @@ class _ProfileHeader extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ContactScreen(),
+                          ),
+                        ),
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 8),
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.06),
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.support_agent_outlined,
+                            size: 16,
+                            color: const Color(0xFF52B788),
+                          ),
+                        ),
+                      ),
                       GestureDetector(
                         onTap: showLogoutDialogBox,
                         child: Container(
@@ -482,7 +587,6 @@ class _ProfileHeader extends StatelessWidget {
               // Avatar + name row
               Row(
                 children: [
-                  // Avatar
                   Container(
                     width: 72,
                     height: 72,
@@ -523,8 +627,6 @@ class _ProfileHeader extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 16),
-
-                  // Name + email + location
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -572,7 +674,6 @@ class _ProfileHeader extends StatelessWidget {
                 ],
               ),
 
-              // Bio
               if (bio != null && bio.isNotEmpty) ...[
                 const SizedBox(height: 14),
                 Text(
@@ -584,13 +685,15 @@ class _ProfileHeader extends StatelessWidget {
                     fontStyle: FontStyle.italic,
                   ),
                 ),
+              ],
+
+              if (dateJoined != null) ...[
+                const SizedBox(height: 6),
                 Text(
-                  'Date Joined: ${dateJoined.toString()}',
+                  'Joined $dateJoined',
                   style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.white.withOpacity(0.5),
-                    height: 1.5,
-                    fontStyle: FontStyle.italic,
+                    fontSize: 11,
+                    color: Colors.white.withOpacity(0.3),
                   ),
                 ),
               ],
@@ -606,6 +709,47 @@ class _ProfileHeader extends StatelessWidget {
                   const SizedBox(width: 10),
                   _StatBox(number: maqamVisited.toString(), label: "Maqam"),
                 ],
+              ),
+
+              const SizedBox(height: 20),
+
+              // Delete account — own full-width row, separate from header icons
+              GestureDetector(
+                onTap: onDeleteAccount,
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF152419),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: Colors.redAccent.withOpacity(0.15),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.delete_outline_rounded,
+                        size: 18,
+                        color: Colors.redAccent.withOpacity(0.7),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          "Delete Account",
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.redAccent.withOpacity(0.8),
+                          ),
+                        ),
+                      ),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        size: 16,
+                        color: Colors.white.withOpacity(0.2),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),

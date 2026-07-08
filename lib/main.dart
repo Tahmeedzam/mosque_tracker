@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:mosque_tracker/config_screens/force_update_screen.dart';
 import 'package:mosque_tracker/config_screens/maintenance_screen.dart';
+import 'package:mosque_tracker/screens/splash_screen.dart';
 import 'package:mosque_tracker/services/auth_gate.dart';
 import 'package:mosque_tracker/services/foreground_service_manager.dart';
 import 'package:mosque_tracker/services/mosque.service.dart';
@@ -21,7 +22,6 @@ void main() async {
   );
 
   MosqueService().loadVisitedMosques();
-  ForegroundServiceManager.initialize();
 
   // Check version before launching app
   final versionStatus = await _checkAppVersion();
@@ -95,13 +95,14 @@ class MyApp extends StatelessWidget {
         home = const ForceUpdateScreen();
         break;
       default:
-        home = const AuthGate();
+        home = const SplashScreen();
     }
 
     return MaterialApp(
       title: 'Masjid Tracker',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        scaffoldBackgroundColor: const Color(0xFF0F1A14),
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       home: home,
