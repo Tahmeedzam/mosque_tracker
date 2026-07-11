@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:mosque_tracker/config_screens/force_update_screen.dart';
 import 'package:mosque_tracker/config_screens/maintenance_screen.dart';
+import 'package:mosque_tracker/config_screens/no_internet_screen.dart';
 import 'package:mosque_tracker/screens/splash_screen.dart';
 import 'package:mosque_tracker/services/auth_gate.dart';
 import 'package:mosque_tracker/services/foreground_service_manager.dart';
@@ -25,8 +28,21 @@ void main() async {
 
   // Check version before launching app
   final versionStatus = await _checkAppVersion();
-
-  runApp(ProviderScope(child: MyApp(versionStatus: versionStatus)));
+  bool hasInternet = false;
+  try {
+    final result = await InternetAddress.lookup('google.com');
+    hasInternet = result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+  } on SocketException {
+    hasInternet = false;
+  }
+  runApp(
+    ProviderScope(
+      child: MyApp(
+        versionStatus: hasInternet ? versionStatus : {'status': 'ok'},
+        hasInternet: hasInternet,
+      ),
+    ),
+  );
 }
 
 Future<void> setup() async {
@@ -81,25 +97,35 @@ bool _isVersionBelow(String current, String minimum) {
 
 class MyApp extends StatelessWidget {
   final Map<String, dynamic> versionStatus;
-  const MyApp({super.key, required this.versionStatus});
+  final bool hasInternet;
+
+  const MyApp({
+    super.key,
+    required this.versionStatus,
+    required this.hasInternet,
+  });
 
   @override
   Widget build(BuildContext context) {
     Widget home;
 
-    switch (versionStatus['status']) {
-      case 'maintenance':
-        home = MaintenanceScreen(message: versionStatus['message'] ?? '');
-        break;
-      case 'force_update':
-        home = const ForceUpdateScreen();
-        break;
-      default:
-        home = const SplashScreen();
+    if (!hasInternet) {
+      home = const NoInternetScreen();
+    } else {
+      switch (versionStatus['status']) {
+        case 'maintenance':
+          home = MaintenanceScreen(message: versionStatus['message'] ?? '');
+          break;
+        case 'force_update':
+          home = const ForceUpdateScreen();
+          break;
+        default:
+          home = const SplashScreen();
+      }
     }
 
     return MaterialApp(
-      title: 'Masjid Tracker',
+      title: 'Maqaam',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFF0F1A14),
