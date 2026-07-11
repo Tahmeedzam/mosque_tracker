@@ -69,8 +69,6 @@ class LocalDatabaseService {
     final newStatus = status == 1 ? 0 : 1;
 
     await db.update(_inMosqueTableName, {_inMosqueStatusColumn: newStatus});
-
-    print("Status updated: $status → $newStatus");
   }
 
   Future<int> getCurrentStatus() async {
@@ -83,7 +81,6 @@ class LocalDatabaseService {
     }
     final status = data.first[_inMosqueStatusColumn] as int;
 
-    print("Current Status: $status");
     return status;
   }
 
@@ -95,7 +92,6 @@ class LocalDatabaseService {
       _pendingMosqueName: mosqueName,
       _pendingMosqueTime: DateTime.now().toIso8601String(),
     });
-    print("Pending mosque saved: $mosqueName");
   }
 
   Future<Map<String, dynamic>?> getPendingMosque() async {

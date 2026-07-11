@@ -54,7 +54,6 @@ Future<Map<String, dynamic>> _checkAppVersion() async {
   try {
     final packageInfo = await PackageInfo.fromPlatform();
     final currentVersion = packageInfo.version;
-    debugPrint(currentVersion);
 
     final config = await Supabase.instance.client
         .from('app_config')
@@ -77,7 +76,6 @@ Future<Map<String, dynamic>> _checkAppVersion() async {
 
     return {'status': 'ok'};
   } catch (e) {
-    debugPrint("Version check error: $e");
     return {'status': 'ok'};
   }
 }

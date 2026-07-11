@@ -360,7 +360,6 @@ class _MosqueDetailModalState extends State<MosqueDetailModal> {
           );
         }
       } catch (e) {
-        debugPrint("Delete mosque error: $e");
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

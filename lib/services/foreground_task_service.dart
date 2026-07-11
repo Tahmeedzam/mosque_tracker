@@ -27,8 +27,6 @@ class MosqueTaskHandler extends TaskHandler {
 
   @override
   Future<void> onStart(DateTime timestamp, TaskStarter starter) async {
-    print("Foreground task started");
-
     // Initialize dotenv
     await dotenv.load(fileName: ".env");
 
@@ -68,22 +66,6 @@ class MosqueTaskHandler extends TaskHandler {
 
     // Get location
     final position = await geo.Geolocator.getCurrentPosition();
-    // final nearby = MosqueService().getMosquesNearby(
-    //   position.latitude,
-    //   position.longitude,
-    // );
-
-    // print("Background geofencing for ${nearby.length} mosques");
-
-    // // Build geofences
-    // final geofences = nearby.map((mosque) {
-    //   return Geofence(
-    //     id: mosque["id"].toString(),
-    //     latitude: (mosque["lat"] as num).toDouble(),
-    //     longitude: (mosque["lng"] as num).toDouble(),
-    //     radius: [GeofenceRadius(id: "radius_${mosque["id"]}", length: 150)],
-    //   );
-    // }).toList();
 
     _geofenceService.addGeofenceStatusChangeListener(_onGeofenceStatus);
     // await _geofenceService.start(geofences);
@@ -97,8 +79,6 @@ class MosqueTaskHandler extends TaskHandler {
     GeofenceStatus status,
     Location location,
   ) async {
-    print("Background geofence: ${geofence.id} — $status");
-
     if (status == GeofenceStatus.DWELL) {
       if (MosqueService().isMosqueVisited(geofence.id)) return;
 
@@ -129,20 +109,15 @@ class MosqueTaskHandler extends TaskHandler {
           ),
         ),
       );
-
-      print("Notification sent for $mosqueName");
     }
   }
 
   @override
-  void onRepeatEvent(DateTime timestamp) {
-    print("Foreground task alive: $timestamp");
-  }
+  void onRepeatEvent(DateTime timestamp) {}
 
   @override
   Future<void> onDestroy(DateTime timestamp, bool isTimeout) async {
     _geofenceService.removeGeofenceStatusChangeListener(_onGeofenceStatus);
     await _geofenceService.stop();
-    print("Foreground task destroyed");
   }
 }

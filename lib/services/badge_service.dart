@@ -48,7 +48,6 @@ class BadgeService {
         'user_id': userId,
         'badge_id': badgeId,
       });
-      print("Badge unlocked: $badgeId");
     }
   }
 }

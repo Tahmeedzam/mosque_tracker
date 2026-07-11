@@ -53,7 +53,6 @@ class MosqueGeofenceService {
     _geofenceService.addGeofenceStatusChangeListener(_onGeofenceStatusChanged);
 
     await _geofenceService.start(geofences);
-    print("Geofencing started for ${geofences.length} mosques");
   }
 
   Future<void> _onGeofenceStatusChanged(

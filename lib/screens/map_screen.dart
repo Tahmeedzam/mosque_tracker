@@ -80,9 +80,6 @@ class _MapScreenState extends State<MapScreen> {
       long = value.longitude;
     });
 
-    print("lat:$lat");
-    print("long:$long");
-
     mapboxMapController?.setCamera(
       CameraOptions(
         center: Point(coordinates: Position(long, lat)),
@@ -174,7 +171,6 @@ class _MapScreenState extends State<MapScreen> {
   // New method — handles both first load and refresh
   Future<void> _updateMarkers() async {
     if (mapboxMapController == null || mosques.isEmpty) return;
-    debugPrint("_updateMarkers called with ${mosques.length} mosques");
 
     try {
       await mapboxMapController!.style.setStyleSourceProperty(
@@ -190,14 +186,12 @@ class _MapScreenState extends State<MapScreen> {
           _buildMaqamGeoJson(),
         );
       } catch (_) {}
-      debugPrint("Sources updated successfully");
       return;
     } catch (e) {
       debugPrint("Source update failed (first load): $e");
     }
 
     // First time setup
-    debugPrint("Doing first time marker setup");
     try {
       final visitedIcon = await _createMosqueIcon(true);
       final unvisitedIcon = await _createMosqueIcon(false);
@@ -230,7 +224,6 @@ class _MapScreenState extends State<MapScreen> {
         [],
         null,
       );
-      debugPrint("Icons added");
 
       // Mosque source + layer
       await mapboxMapController!.style.addSource(
@@ -278,7 +271,6 @@ class _MapScreenState extends State<MapScreen> {
 
       _hidePOILayers();
       mapboxMapController!.setOnMapTapListener(_onMapTap);
-      debugPrint("Setup complete");
     } catch (e) {
       debugPrint("First time setup ERROR: $e");
     }
@@ -286,7 +278,6 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> _updateMaqamMarkers() async {
     if (mapboxMapController == null || mosques.isEmpty) return;
-    debugPrint("_updateMarkers called with ${mosques.length} mosques");
 
     try {
       await mapboxMapController!.style.setStyleSourceProperty(
@@ -294,14 +285,12 @@ class _MapScreenState extends State<MapScreen> {
         "data",
         _buildMosqueGeoJson(),
       );
-      debugPrint("Source updated successfully");
       return;
     } catch (e) {
       debugPrint("Source update failed (expected on first load): $e");
     }
 
     // First time setup
-    debugPrint("Doing first time marker setup");
     try {
       final visitedIcon = await _createMaqamIcon();
 
@@ -314,12 +303,10 @@ class _MapScreenState extends State<MapScreen> {
         [],
         null,
       );
-      debugPrint("Icons added");
 
       await mapboxMapController!.style.addSource(
         GeoJsonSource(id: "mosques-source", data: _buildMaqamGeoJson()),
       );
-      debugPrint("Source added");
 
       await mapboxMapController!.style.addLayer(
         SymbolLayer(
@@ -339,11 +326,9 @@ class _MapScreenState extends State<MapScreen> {
           textOptional: true,
         ),
       );
-      debugPrint("Layer added");
 
       _hidePOILayers();
       mapboxMapController!.setOnMapTapListener(_onMapTap);
-      debugPrint("Setup complete");
     } catch (e) {
       debugPrint("First time setup ERROR: $e");
     }
@@ -499,7 +484,6 @@ class _MapScreenState extends State<MapScreen> {
 
     _hidePOILayers();
     mapboxMapController!.setOnMapTapListener(_onMapTap);
-    debugPrint("Markers added: ${mosques.length}");
   }
 
   Future<void> _addMaqamMarkers() async {
@@ -544,7 +528,6 @@ class _MapScreenState extends State<MapScreen> {
 
     _hidePOILayers();
     mapboxMapController!.setOnMapTapListener(_onMapTap);
-    debugPrint("Markers added: ${mosques.length}");
   }
 
   void _getMaqamVisited() async {
@@ -574,7 +557,6 @@ class _MapScreenState extends State<MapScreen> {
         }
       }
     } catch (e) {
-      debugPrint("Error loading maqam: $e");
       _visitedMaqam = [];
     }
   }
@@ -640,7 +622,6 @@ class _MapScreenState extends State<MapScreen> {
         "data",
         geoJson,
       );
-      debugPrint("Markers refreshed after visit change");
     } catch (e) {
       debugPrint("Error refreshing markers: $e");
     }
@@ -818,7 +799,6 @@ class _MapScreenState extends State<MapScreen> {
         visitedMosque = _visitedMosques.length;
       });
     } catch (e) {
-      print("Error loading visited mosques: $e");
       _visitedMosques = [];
     }
   }
@@ -839,7 +819,6 @@ class _MapScreenState extends State<MapScreen> {
         visitedMaqam = _visitedMaqam.length;
       });
     } catch (e) {
-      print("Error loading visited mosques: $e");
       _visitedMaqam = [];
     }
   }
@@ -1265,7 +1244,6 @@ class _MapScreenState extends State<MapScreen> {
         );
       }
     } catch (e) {
-      debugPrint("Error adding mosque: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -1612,7 +1590,6 @@ class _MapScreenState extends State<MapScreen> {
               _cameraDebounce = Timer(
                 const Duration(milliseconds: 800),
                 () async {
-                  debugPrint("Camera settled");
                   if (mapboxMapController == null) return;
 
                   final centerLat = data.cameraState.center.coordinates.lat
@@ -1627,10 +1604,7 @@ class _MapScreenState extends State<MapScreen> {
                     centerLng,
                   );
 
-                  debugPrint("Distance from last fetch: ${distance.round()}m");
-
                   if (distance > 2000) {
-                    debugPrint("Fetching mosques for new area");
                     await setMosquesData(
                       overrideLat: centerLat,
                       overrideLng: centerLng,

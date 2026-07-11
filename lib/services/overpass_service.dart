@@ -7,38 +7,6 @@ class MosqueService {
     double lat,
     double lng,
   ) async {
-    // ── LIVE API (commented out until Overpass stabilises) ──────────────
-    // double offset = 0.05;
-    // double south = lat - offset;
-    // double north = lat + offset;
-    // double west = lng - offset;
-    // double east = lng + offset;
-    // String query =
-    //     '[out:json][timeout:30];('
-    //     'node["amenity"="place_of_worship"]["religion"="muslim"]($south,$west,$north,$east);'
-    //     'way["amenity"="place_of_worship"]["religion"="muslim"]($south,$west,$north,$east);'
-    //     'node["amenity"="mosque"]($south,$west,$north,$east);'
-    //     'way["amenity"="mosque"]($south,$west,$north,$east);'
-    //     'node["building"="mosque"]($south,$west,$north,$east);'
-    //     'way["building"="mosque"]($south,$west,$north,$east);'
-    //     'relation["amenity"="place_of_worship"]["religion"="muslim"]($south,$west,$north,$east);'
-    //     ');out center tags;';
-    // final response = await http.post(
-    //   Uri.parse("https://maps.mail.ru/osm/tools/overpass/api/interpreter"),
-    //   headers: {
-    //     "Content-Type": "application/x-www-form-urlencoded",
-    //     "Accept": "application/json",
-    //   },
-    //   body: "data=${Uri.encodeQueryComponent(query)}",
-    // );
-    // if (response.statusCode != 200) {
-    //   print("Overpass error: ${response.statusCode} — ${response.body}");
-    //   return [];
-    // }
-    // final data = jsonDecode(response.body);
-    // final elements = data["elements"] as List;
-    // ────────────────────────────────────────────────────────────────────
-
     // ── LOCAL JSON (active) ──────────────────────────────────────────────
     final raw = await rootBundle.loadString('assets/mosques.json');
     final data = jsonDecode(raw);
@@ -72,7 +40,6 @@ class MosqueService {
       });
     }
 
-    print("Total mosques loaded: ${mosques.length}");
     return mosques;
   }
 }

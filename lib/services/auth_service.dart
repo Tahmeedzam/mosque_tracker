@@ -73,7 +73,6 @@ class AuthService {
       }
       return false;
     } catch (e) {
-      print("Google sign in error: $e");
       return false;
     }
   }
@@ -109,7 +108,6 @@ class AuthService {
       }
       return false;
     } catch (e) {
-      debugPrint("Delete account error: $e");
       return false;
     }
   }

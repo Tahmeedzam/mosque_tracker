@@ -106,10 +106,6 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
       if (closestMosque == null) return;
       if (!mounted) return;
 
-      debugPrint(
-        "Nearby mosque found: ${closestMosque['name']} — ${closestDistance.round()}m",
-      );
-
       // Save to local DB and show modal
       await LocalDatabaseService.instance.savePendingMosque(
         closestMosque['id'].toString(),

@@ -47,7 +47,6 @@ class PrayerService {
     final String timezoneName =
         timezoneInfo.identifier; // or .identifier or .zoneId
     tz.setLocalLocation(tz.getLocation(timezoneName));
-    debugPrint("Timezone set to: $timezoneName");
 
     const androidSettings = AndroidInitializationSettings('ic_notification');
     const iosSettings = DarwinInitializationSettings(
@@ -137,10 +136,8 @@ class PrayerService {
           >();
 
       final granted = await androidPlugin?.requestNotificationsPermission();
-      debugPrint("Notification permission: $granted");
 
       await androidPlugin?.requestExactAlarmsPermission();
-      debugPrint("Exact alarm permission requested");
 
       await _scheduleAdhans();
 
@@ -226,11 +223,6 @@ class PrayerService {
 
     for (int i = 0; i < _prayerTimes.length; i++) {
       final prayer = _prayerTimes[i];
-      debugPrint("Scheduling adhan for ${prayer.name} at ${prayer.time}");
-      debugPrint("_scheduleAdhans called, ${_prayerTimes.length} prayers");
-      debugPrint(
-        "Now: $now, Prayer time: ${prayer.time}, Is future: ${prayer.time.isAfter(now)}",
-      );
 
       // Skip sunrise — no adhan for sunrise
       if (prayer.name == "Sunrise") continue;
@@ -263,8 +255,6 @@ class PrayerService {
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       );
     }
-
-    debugPrint("Adhans scheduled for ${_prayerTimes.length} prayers");
   }
 
   // Get next prayer

@@ -41,12 +41,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           .eq('id', userId)
           .single();
 
-      debugPrint("About to call loadPersonalMaqam");
       final maqamCount = await mosqueService.loadPersonalMaqam();
-      debugPrint("loadPersonalMaqam returned: $maqamCount");
 
       if (!mounted) {
-        debugPrint("Widget unmounted before setState — aborting");
         return;
       }
 
@@ -55,11 +52,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _totalMaqam = maqamCount;
         isLoading = false;
       });
-
-      debugPrint("setState completed — isLoading: $isLoading");
     } catch (e, stack) {
-      debugPrint("Error loading user: $e");
-      debugPrint("Stack: $stack");
       if (mounted) setState(() => isLoading = false);
     }
   }
@@ -104,7 +97,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         });
       }
     } catch (e) {
-      print("Error fetching timestamp: $e");
       if (mounted) {
         setState(() {
           formattedDate = "Error loading date";
@@ -115,7 +107,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("Profile build called — isLoading: $isLoading");
     final visited = mosqueService.visitedMosques;
     final totalVisited = visited.length;
 
@@ -201,9 +192,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }
 
-    debugPrint(
-      "About to build Scaffold — userData: $userData, totalVisited: $totalVisited, totalMaqam: $_totalMaqam, formattedDate: $formattedDate",
-    );
     return Scaffold(
       backgroundColor: const Color(0xFF0F1A14),
       body: isLoading

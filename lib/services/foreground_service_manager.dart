@@ -31,9 +31,7 @@ class ForegroundServiceManager {
         notificationText: "Detecting nearby mosques...",
         callback: startCallback,
       );
-    } catch (e) {
-      print("Foreground service error: $e");
-    }
+    } catch (e) {}
   }
 
   static Future<void> stop() async {

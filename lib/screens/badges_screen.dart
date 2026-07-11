@@ -26,9 +26,7 @@ class _BadgesScreenState extends State<BadgesScreen> {
   Future<void> _init() async {
     try {
       await BadgeService().grantNewBadge();
-    } catch (e) {
-      debugPrint("Badge grant error: $e");
-    }
+    } catch (e) {}
     await _loadData();
   }
 
@@ -56,7 +54,6 @@ class _BadgesScreenState extends State<BadgesScreen> {
         _loading = false;
       });
     } catch (e) {
-      debugPrint("Badge load error: $e");
       if (mounted) setState(() => _loading = false);
     }
   }

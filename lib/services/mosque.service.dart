@@ -28,7 +28,6 @@ class MosqueService {
     required double north,
     required double east,
   }) async {
-    debugPrint("fetchMosquesByBbox called");
     try {
       final response = await _supabase.rpc(
         'mosques_in_bbox',
@@ -39,9 +38,7 @@ class MosqueService {
           'max_lng': east,
         },
       );
-      debugPrint("RPC response type: ${response.runtimeType}");
       final results = List<Map<String, dynamic>>.from(response);
-      debugPrint("fetchMosquesByBbox returned: ${results.length}");
       return results;
     } catch (e) {
       debugPrint("fetchMosquesByBbox ERROR: $e");
@@ -73,8 +70,6 @@ class MosqueService {
 
     for (final endpoint in endpoints) {
       try {
-        debugPrint("Trying Overpass endpoint: $endpoint");
-
         final response = await http
             .post(
               Uri.parse(endpoint),
@@ -87,7 +82,6 @@ class MosqueService {
             .timeout(const Duration(seconds: 8)); // reduced timeout
 
         if (response.statusCode != 200) {
-          debugPrint("$endpoint returned ${response.statusCode} — trying next");
           continue;
         }
         if (response.statusCode == 200) {
@@ -108,15 +102,12 @@ class MosqueService {
 
         final data = jsonDecode(response.body);
         final elements = data["elements"] as List;
-
-        debugPrint("Success via $endpoint — ${elements.length} elements");
       } catch (e) {
         debugPrint("$endpoint failed: $e — trying next");
         continue;
       }
     }
 
-    debugPrint("All Overpass endpoints failed or rate limited");
     return [];
   }
 
@@ -161,7 +152,6 @@ class MosqueService {
       });
     }
 
-    debugPrint("Parsed ${mosques.length} mosques from Overpass");
     return mosques;
   }
 
@@ -172,10 +162,6 @@ class MosqueService {
     required double north,
     required double east,
   }) async {
-    debugPrint(
-      "getMosquesForViewport called — S:$south W:$west N:$north E:$east",
-    );
-
     final supabaseMosques = await fetchMosquesByBbox(
       south: south,
       west: west,
@@ -183,22 +169,17 @@ class MosqueService {
       east: east,
     );
 
-    debugPrint("Supabase returned: ${supabaseMosques.length}");
-
     if (supabaseMosques.length >= 3) {
       _mosques = supabaseMosques;
       return supabaseMosques;
     }
 
-    debugPrint("Falling back to Overpass...");
     final overpassMosques = await fetchMosquesFromOverpass(
       south: south,
       west: west,
       north: north,
       east: east,
     );
-
-    debugPrint("Overpass returned: ${overpassMosques.length}");
 
     final Map<String, Map<String, dynamic>> merged = {};
     for (final m in supabaseMosques) merged[m["id"].toString()] = m;
@@ -209,7 +190,6 @@ class MosqueService {
 
     final result = merged.values.toList();
     _mosques = result;
-    debugPrint("Total merged: ${result.length}");
     return result;
   }
 
@@ -273,8 +253,6 @@ class MosqueService {
             'update_mosque_location',
             params: {'mosque_id': mosqueId},
           );
-
-          debugPrint("Overpass mosque saved to Supabase: $mosqueId");
         } catch (e) {
           debugPrint("Error saving Overpass mosque: $e");
         }
@@ -291,7 +269,6 @@ class MosqueService {
       });
 
       await loadVisitedMosques(forceReload: true);
-      debugPrint("Mosque $mosqueId marked as visited");
     } catch (e) {
       debugPrint("Error marking visited: $e");
     }
@@ -309,7 +286,6 @@ class MosqueService {
           .eq('mosque_id', mosqueId);
 
       await loadVisitedMosques(forceReload: true);
-      debugPrint("Mosque $mosqueId unmarked as visited");
     } catch (e) {
       debugPrint("Error unmarking visited: $e");
     }
@@ -345,7 +321,6 @@ class MosqueService {
 
       return {"address": address, "city": city, "country": country};
     } catch (e) {
-      debugPrint("Geocoding error: $e");
       return {"address": "", "city": "", "country": ""};
     }
   }
@@ -381,6 +356,5 @@ class MosqueService {
     _visitedMaqam = [];
     _visitedLoaded = false;
     _maqamLoaded = false;
-    debugPrint("MosqueService cache cleared");
   }
 }

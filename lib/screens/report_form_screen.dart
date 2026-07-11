@@ -53,7 +53,6 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
         });
       }
     } catch (e) {
-      debugPrint("Error submitting report: $e");
       if (mounted) {
         setState(() => _isSubmitting = false);
         ScaffoldMessenger.of(context).showSnackBar(
