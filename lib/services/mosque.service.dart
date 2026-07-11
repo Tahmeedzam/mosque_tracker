@@ -249,16 +249,36 @@ class MosqueService {
       if (userId == null) return;
       if (isMosqueVisited(mosqueId)) return;
 
-      debugPrint(
-        "Looking for mosque $mosqueId in _mosques (count: ${_mosques.length})",
-      );
-
       final mosque = _mosques.firstWhere(
         (m) => m["id"].toString() == mosqueId,
         orElse: () => {},
       );
 
-      debugPrint("Found mosque data: $mosque");
+      // If mosque came from Overpass, save it to Supabase first
+      if (mosque.isNotEmpty && mosque["source"] == "overpass") {
+        try {
+          await _supabase.from('mosques').upsert({
+            'id': mosqueId,
+            'name': mosque["name"],
+            'lat': mosque["lat"],
+            'lng': mosque["lng"],
+            'city': mosque["city"] ?? '',
+            'country': mosque["country"] ?? '',
+            'verified': false,
+            'status': 'unknown',
+          });
+
+          // Update PostGIS location column
+          await _supabase.rpc(
+            'update_mosque_location',
+            params: {'mosque_id': mosqueId},
+          );
+
+          debugPrint("Overpass mosque saved to Supabase: $mosqueId");
+        } catch (e) {
+          debugPrint("Error saving Overpass mosque: $e");
+        }
+      }
 
       await _supabase.from('visitedMosque').insert({
         "user_id": userId,

@@ -27,6 +27,7 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   bool _isLoadingOverpass = false;
+  bool _showVisitedOnly = false;
 
   final _geofenceService = MosqueGeofenceService();
   double lat = 0.0;
@@ -101,38 +102,53 @@ class _MapScreenState extends State<MapScreen> {
     double? overrideLat,
     double? overrideLng,
   }) async {
-    debugPrint(
-      "setMosquesData entry — isFetching: $_isFetching, lat: $lat, lng: $long",
-    );
     if (_isFetching) return;
-    if (!mounted) return; // add this
+    if (!mounted) return;
     _isFetching = true;
-    setState(() => _isLoadingOverpass = true);
+    if (mounted) setState(() => _isLoadingOverpass = true);
 
+    // When filter is on — just use visited mosques directly, no viewport fetch
+    if (_showVisitedOnly) {
+      final visited = mosqueService.visitedMosques;
+      final visitedMosqueList = visited
+          .map(
+            (v) => {
+              "id": v["mosque_id"].toString(),
+              "name": v["mosque_name"] ?? "Unknown Mosque",
+              "lat": v["mosque_lat"] ?? 0.0,
+              "lng": v["mosque_lng"] ?? 0.0,
+              "city": v["mosque_city"] ?? "",
+              "country": v["mosque_country"] ?? "",
+              "verified": false,
+              "status": "unknown",
+              "women_allowed": "unknown",
+              "has_wudu_area": null,
+              "has_parking": null,
+              "verified_count": 0,
+            },
+          )
+          .toList();
+
+      _isFetching = false;
+      if (mounted) {
+        setState(() {
+          mosques = visitedMosqueList;
+          _isLoadingOverpass = false;
+        });
+        await _updateMarkers();
+      }
+      return;
+    }
+
+    // Normal viewport fetch when filter is off
     final fetchLat = overrideLat ?? lat;
     final fetchLng = overrideLng ?? long;
 
-    debugPrint("setMosquesData called — lat: $fetchLat, lng: $fetchLng");
-    final cameraState = await mapboxMapController!.getCameraState();
-    final zoom = cameraState.zoom;
-
-    // Larger bbox when zoomed out, smaller when zoomed in
-    double offset;
-    if (zoom < 10) {
-      offset = 0.5; // very zoomed out — load large area
-    } else if (zoom < 13) {
-      offset = 0.3; // medium zoom
-    } else {
-      offset = 0.15; // zoomed in — load small area
-    }
-    // const offset = 0.15;
-
+    const offset = 0.15;
     final south = fetchLat - offset;
     final north = fetchLat + offset;
     final west = fetchLng - offset;
     final east = fetchLng + offset;
-
-    debugPrint("BBox — S:$south W:$west N:$north E:$east");
 
     await mosqueService.loadVisitedMosques();
 
@@ -143,21 +159,16 @@ class _MapScreenState extends State<MapScreen> {
       east: east,
     );
 
-    debugPrint("Fetched mosque count: ${fetched.length}");
-
     _lastFetchLat = fetchLat;
     _lastFetchLng = fetchLng;
     _isFetching = false;
-    if (!mounted) return;
 
-    if (mounted) {
-      setState(() {
-        mosques = fetched;
-        _isLoadingOverpass = false; // add this
-      });
-      await _updateMarkers();
-      await _updateMaqamMarkers();
-    }
+    if (!mounted) return;
+    setState(() {
+      mosques = fetched;
+      _isLoadingOverpass = false;
+    });
+    await _updateMarkers();
   }
 
   // New method — handles both first load and refresh
@@ -570,7 +581,13 @@ class _MapScreenState extends State<MapScreen> {
 
   // ✅ NEW: builds a fresh GeoJSON string reflecting current visited state
   String _buildMosqueGeoJson() {
-    final features = mosques.map((mosque) {
+    final filteredMosques = _showVisitedOnly
+        ? mosques
+              .where((m) => mosqueService.isMosqueVisited(m["id"].toString()))
+              .toList()
+        : mosques;
+
+    final features = filteredMosques.map((mosque) {
       final mosqueId = mosque["id"].toString();
       final isVisited = mosqueService.isMosqueVisited(mosqueId);
       return {
@@ -973,7 +990,7 @@ class _MapScreenState extends State<MapScreen> {
                   const SizedBox(height: 6),
                   TextField(
                     controller: nameController,
-                    autofocus: useLat == null,
+                    autofocus: false,
                     style: const TextStyle(
                       color: Color(0xFFF5F0E8),
                       fontSize: 14,
@@ -1328,7 +1345,7 @@ class _MapScreenState extends State<MapScreen> {
                 const SizedBox(height: 6),
                 TextField(
                   controller: nameController,
-                  autofocus: true,
+                  autofocus: false,
                   style: const TextStyle(
                     color: Color(0xFFF5F0E8),
                     fontSize: 14,
@@ -1504,6 +1521,8 @@ class _MapScreenState extends State<MapScreen> {
                               submitLat: formLat,
                               submitLng: formLng,
                             );
+                            _getMaqamVisited();
+                            await _updateMarkers();
                             if (ctx.mounted) Navigator.pop(ctx);
                           },
                     style: TextButton.styleFrom(
@@ -1944,6 +1963,45 @@ class _MapScreenState extends State<MapScreen> {
                 child: const Icon(
                   Icons.my_location_rounded,
                   color: Color(0xFF52B788),
+                  size: 20,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            right: 16,
+            bottom: 125,
+            child: GestureDetector(
+              onTap: () async {
+                setState(() => _showVisitedOnly = !_showVisitedOnly);
+                await setMosquesData(overrideLat: lat, overrideLng: long);
+              },
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: _showVisitedOnly
+                      ? const Color(0xFF2D6A4F)
+                      : const Color(0xFF152419).withOpacity(0.97),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: _showVisitedOnly
+                        ? const Color(0xFF52B788).withOpacity(0.6)
+                        : const Color(0xFF52B788).withOpacity(0.3),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.4),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  Icons.filter_alt_outlined,
+                  color: _showVisitedOnly
+                      ? const Color(0xFFE8B96A)
+                      : const Color(0xFF52B788),
                   size: 20,
                 ),
               ),

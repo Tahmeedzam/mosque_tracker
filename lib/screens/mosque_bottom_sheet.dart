@@ -261,6 +261,7 @@ class _MosqueBottomSheetState extends State<MosqueBottomSheet> {
           const SizedBox(height: 12),
 
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               if ((widget.mosque["city"] ?? "").toString().isNotEmpty)
                 _MetaChip(

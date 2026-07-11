@@ -187,7 +187,7 @@ class _ReportFormScreenState extends State<ReportFormScreen> {
                 TextField(
                   controller: _messageController,
                   maxLines: 8,
-                  autofocus: true,
+                  autofocus: false,
                   style: const TextStyle(
                     color: Color(0xFFF5F0E8),
                     fontSize: 14,

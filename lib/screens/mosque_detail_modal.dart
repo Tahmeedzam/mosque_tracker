@@ -289,6 +289,89 @@ class _MosqueDetailModalState extends State<MosqueDetailModal> {
     final womenAllowed = _mosqueData["women_allowed"] ?? "unknown";
     final hasWudu = _mosqueData["has_wudu_area"];
     final hasParking = _mosqueData["has_parking"];
+
+    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    final isOwner = _mosqueData["added_by"]?.toString() == currentUserId;
+
+    Future<void> _deleteMosque() async {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: const Color(0xFF152419),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(color: Colors.redAccent.withOpacity(0.2)),
+          ),
+          title: const Text(
+            "Delete mosque?",
+            style: TextStyle(color: Color(0xFFF5F0E8), fontFamily: 'Georgia'),
+          ),
+          content: const Text(
+            "This will permanently remove this mosque from the map for everyone. This cannot be undone.",
+            style: TextStyle(
+              color: Color(0xFF9E9C97),
+              fontSize: 13,
+              height: 1.5,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text(
+                "Cancel",
+                style: TextStyle(color: Color(0xFF52B788)),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: const Text(
+                "Delete",
+                style: TextStyle(color: Colors.redAccent),
+              ),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed != true) return;
+
+      try {
+        await _supabase.from('mosques').delete().eq('id', _mosqueData["id"]);
+
+        if (mounted) {
+          Navigator.of(context).pop(); // close modal first
+          // The map will refresh on next camera move automatically
+          // But trigger an immediate refresh via the callback if available
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Mosque removed"),
+              backgroundColor: Color(0xFF2D6A4F),
+            ),
+          );
+        }
+
+        if (mounted) {
+          Navigator.of(context).pop(); // close modal
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Mosque removed"),
+              backgroundColor: Color(0xFF2D6A4F),
+            ),
+          );
+        }
+      } catch (e) {
+        debugPrint("Delete mosque error: $e");
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Error deleting: $e"),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+        }
+      }
+    }
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -659,6 +742,48 @@ class _MosqueDetailModalState extends State<MosqueDetailModal> {
                       ),
                     ),
                   ),
+
+                  if (_mosqueData["added_by"]?.toString() ==
+                      Supabase.instance.client.auth.currentUser?.id)
+                    // if (isOwner)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: TextButton(
+                          onPressed: _deleteMosque,
+                          style: TextButton.styleFrom(
+                            backgroundColor: Colors.redAccent.withOpacity(0.1),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(
+                                color: Colors.redAccent.withOpacity(0.3),
+                              ),
+                            ),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.delete_outline_rounded,
+                                size: 15,
+                                color: Colors.redAccent,
+                              ),
+                              SizedBox(width: 7),
+                              Text(
+                                "Delete this mosque",
+                                style: TextStyle(
+                                  color: Colors.redAccent,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
 
                   // ── Footer quote ───────────────────────────────
                   Container(
