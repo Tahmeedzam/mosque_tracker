@@ -323,7 +323,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
         child: Container(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.fromLTRB(
+            24,
+            24,
+            24,
+            24 + MediaQuery.of(context).padding.bottom,
+          ),
           decoration: const BoxDecoration(
             color: Color(0xFF152419),
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
