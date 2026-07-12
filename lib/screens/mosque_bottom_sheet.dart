@@ -3,6 +3,7 @@ import 'package:mosque_tracker/screens/mosque_detail_modal.dart';
 import 'package:mosque_tracker/services/badge_service.dart';
 import 'package:mosque_tracker/services/mosque.service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MosqueBottomSheet extends StatefulWidget {
   final Map<String, dynamic> mosque;
@@ -271,6 +272,74 @@ class _MosqueBottomSheetState extends State<MosqueBottomSheet> {
             ],
           ),
           const SizedBox(height: 14),
+
+          // Directions button
+          SizedBox(
+            width: double.infinity,
+            child: TextButton(
+              onPressed: () async {
+                final lat = (widget.mosque["lat"] as num).toDouble();
+                final lng = (widget.mosque["lng"] as num).toDouble();
+                final name = Uri.encodeComponent(
+                  widget.mosque["name"] ?? "Mosque",
+                );
+
+                final googleMapsUrl = Uri.parse(
+                  "https://www.google.com/maps/dir/?api=1&destination=$lat,$lng&travelmode=driving",
+                );
+
+                try {
+                  await launchUrl(
+                    googleMapsUrl,
+                    mode: LaunchMode.externalApplication,
+                  );
+                } catch (e) {
+                  // Fallback to geo URI
+                  final geoUri = Uri.parse("geo:$lat,$lng?q=$lat,$lng($name)");
+                  try {
+                    await launchUrl(
+                      geoUri,
+                      mode: LaunchMode.externalApplication,
+                    );
+                  } catch (e2) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Could not open maps")),
+                      );
+                    }
+                  }
+                }
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.white.withOpacity(0.05),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  side: BorderSide(color: Colors.white.withOpacity(0.1)),
+                ),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.directions_outlined,
+                    size: 16,
+                    color: Color(0xFF52B788),
+                  ),
+                  SizedBox(width: 8),
+                  Text(
+                    "Get directions",
+                    style: TextStyle(
+                      color: Color(0xFFF5F0E8),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
 
           SizedBox(
             width: double.infinity,
