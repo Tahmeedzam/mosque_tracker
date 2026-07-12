@@ -58,23 +58,32 @@ class _MapScreenState extends State<MapScreen> {
   double _lastFetchLng = 0.0;
   bool _isFetching = false;
   // List<Map<String, dynamic>> get visitedMosques => _visitedMosques;
+  Map<String, dynamic>? selectedMaqam;
+  bool showMaqamSheet = false;
 
   Future<geo.Position> _getCurrentLocation() async {
     bool serviceEnabled = await geo.Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) return Future.error('Location services are disabled');
+    if (!mounted) return Future.error('Widget unmounted');
 
     geo.LocationPermission permission = await geo.Geolocator.checkPermission();
+    if (!mounted) return Future.error('Widget unmounted');
+
     if (permission == geo.LocationPermission.denied) {
       permission = await geo.Geolocator.requestPermission();
+      if (!mounted) return Future.error('Widget unmounted');
       if (permission == geo.LocationPermission.denied) {
-        return Future.error('Location are denied');
+        return Future.error('Location denied');
       }
     }
+
     if (permission == geo.LocationPermission.deniedForever) {
-      return Future.error("Location permissions are permanently disabled");
+      return Future.error('Location permanently disabled');
     }
 
     geo.Position value = await geo.Geolocator.getCurrentPosition();
+    if (!mounted) return Future.error('Widget unmounted');
+
     setState(() {
       lat = value.latitude;
       long = value.longitude;
@@ -87,11 +96,13 @@ class _MapScreenState extends State<MapScreen> {
       ),
     );
 
-    // Pass coordinates directly instead of relying on class variables
+    if (!mounted) return value;
+
     await setMosquesData(
       overrideLat: value.latitude,
       overrideLng: value.longitude,
     );
+
     return value;
   }
 
@@ -104,7 +115,7 @@ class _MapScreenState extends State<MapScreen> {
     _isFetching = true;
     if (mounted) setState(() => _isLoadingOverpass = true);
 
-    // When filter is on — just use visited mosques directly, no viewport fetch
+    // When filter is on — just use visited mosques directly
     if (_showVisitedOnly) {
       final visited = mosqueService.visitedMosques;
       final visitedMosqueList = visited
@@ -127,17 +138,16 @@ class _MapScreenState extends State<MapScreen> {
           .toList();
 
       _isFetching = false;
-      if (mounted) {
-        setState(() {
-          mosques = visitedMosqueList;
-          _isLoadingOverpass = false;
-        });
-        await _updateMarkers();
-      }
+      if (!mounted) return;
+      setState(() {
+        mosques = visitedMosqueList;
+        _isLoadingOverpass = false;
+      });
+      await _updateMarkers();
       return;
     }
 
-    // Normal viewport fetch when filter is off
+    // Normal viewport fetch
     final fetchLat = overrideLat ?? lat;
     final fetchLng = overrideLng ?? long;
 
@@ -148,6 +158,10 @@ class _MapScreenState extends State<MapScreen> {
     final east = fetchLng + offset;
 
     await mosqueService.loadVisitedMosques();
+    if (!mounted) {
+      _isFetching = false;
+      return;
+    }
 
     final fetched = await mosqueService.getMosquesForViewport(
       south: south,
@@ -649,13 +663,14 @@ class _MapScreenState extends State<MapScreen> {
     if (mapboxMapController == null) return;
 
     final screenCoord = context.touchPosition;
+
+    // Query both layers at once
     final features = await mapboxMapController!.queryRenderedFeatures(
       RenderedQueryGeometry.fromScreenCoordinate(
         ScreenCoordinate(x: screenCoord.x, y: screenCoord.y),
       ),
-      RenderedQueryOptions(layerIds: ["mosques-layer"]),
+      RenderedQueryOptions(layerIds: ["mosques-layer", "maqam-layer"]),
     );
-    RenderedQueryOptions(layerIds: ["mosques-layer", "maqam-layer"]);
 
     if (features.isNotEmpty) {
       final feature = features.first?.queriedFeature.feature;
@@ -663,7 +678,41 @@ class _MapScreenState extends State<MapScreen> {
 
       final rawProps = feature["properties"];
       final props = Map<String, dynamic>.from(rawProps as Map);
+      final icon = props["icon"]?.toString() ?? "";
 
+      // Check if tapped marker is a maqam
+      if (icon == "maqam-icon") {
+        final maqamId = props["id"]?.toString() ?? "";
+        final fullMaqam = _visitedMaqam.firstWhere(
+          (m) => m["id"].toString() == maqamId,
+          orElse: () => {
+            "id": maqamId,
+            "name": props["name"]?.toString() ?? "Maqam",
+            "lat": 0.0,
+            "lng": 0.0,
+          },
+        );
+
+        final maqamLat = (fullMaqam["lat"] as num).toDouble();
+        final maqamLng = (fullMaqam["lng"] as num).toDouble();
+
+        mapboxMapController?.flyTo(
+          CameraOptions(
+            center: Point(coordinates: Position(maqamLng, maqamLat)),
+            zoom: 16.5,
+          ),
+          MapAnimationOptions(duration: 500),
+        );
+
+        setState(() {
+          selectedMaqam = fullMaqam;
+          showMaqamSheet = true;
+          showBottomSheet = false; // close mosque sheet if open
+        });
+        return;
+      }
+
+      // Otherwise it's a mosque
       final mosqueId = props["id"]?.toString() ?? "";
       final fullMosque = mosqueService.mosques.firstWhere(
         (m) => m["id"].toString() == mosqueId,
@@ -680,7 +729,6 @@ class _MapScreenState extends State<MapScreen> {
       final mosqueLat = (fullMosque["lat"] as num).toDouble();
       final mosqueLng = (fullMosque["lng"] as num).toDouble();
 
-      // ✅ Zoom in to the tapped mosque
       mapboxMapController?.flyTo(
         CameraOptions(
           center: Point(coordinates: Position(mosqueLng, mosqueLat)),
@@ -703,9 +751,13 @@ class _MapScreenState extends State<MapScreen> {
           "distance": distanceMeters,
         };
         showBottomSheet = true;
+        showMaqamSheet = false; // close maqam sheet if open
       });
     } else {
-      setState(() => showBottomSheet = false);
+      setState(() {
+        showBottomSheet = false;
+        showMaqamSheet = false;
+      });
     }
   }
 
@@ -2009,6 +2061,39 @@ class _MapScreenState extends State<MapScreen> {
                   : const SizedBox.shrink(),
             ),
           ),
+
+          // Maqam bottom sheet
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 320),
+            curve: Curves.easeOutCubic,
+            bottom: showMaqamSheet ? 100 : -300,
+            left: 16,
+            right: 16,
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 100),
+              opacity: showMaqamSheet ? 1.0 : 0.0,
+              child: selectedMaqam != null
+                  ? _MaqamBottomSheet(
+                      maqam: selectedMaqam!,
+                      onClose: () => setState(() => showMaqamSheet = false),
+                      onDelete: () async {
+                        try {
+                          final userId = _supabase.auth.currentUser?.id;
+                          await _supabase
+                              .from('personal_places')
+                              .delete()
+                              .eq('id', selectedMaqam!["id"])
+                              .eq('user_id', userId!);
+                          _getMaqamVisited();
+                          setState(() => showMaqamSheet = false);
+                        } catch (e) {
+                          debugPrint("Error deleting maqam: $e");
+                        }
+                      },
+                    )
+                  : const SizedBox.shrink(),
+            ),
+          ),
         ],
       ),
     );
@@ -2073,6 +2158,166 @@ class _AddOptionTile extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _MaqamBottomSheet extends StatelessWidget {
+  final Map<String, dynamic> maqam;
+  final VoidCallback onClose;
+  final VoidCallback onDelete;
+
+  const _MaqamBottomSheet({
+    required this.maqam,
+    required this.onClose,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final name = maqam["name"] ?? "Maqam";
+    final lat = maqam["lat"];
+    final lng = maqam["lng"];
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF152419).withOpacity(0.97),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFC9963A).withOpacity(0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.5),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Drag handle
+          Center(
+            child: Container(
+              width: 36,
+              height: 3,
+              decoration: BoxDecoration(
+                color: const Color(0xFFC9963A).withOpacity(0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
+
+          Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2D6A4F).withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: const Color(0xFFC9963A).withOpacity(0.3),
+                  ),
+                ),
+                child: const Center(
+                  child: Text("🏠", style: TextStyle(fontSize: 20)),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: const TextStyle(
+                        fontFamily: 'Georgia',
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFFF5F0E8),
+                      ),
+                    ),
+                    Text(
+                      "Your personal prayer spot",
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.white.withOpacity(0.4),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              GestureDetector(
+                onTap: onClose,
+                child: Icon(
+                  Icons.close,
+                  size: 18,
+                  color: Colors.white.withOpacity(0.3),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Coordinates
+          Row(
+            children: [
+              Icon(
+                Icons.location_on_outlined,
+                size: 13,
+                color: const Color(0xFF52B788).withOpacity(0.7),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                "${(lat as num).toStringAsFixed(5)}, ${(lng as num).toStringAsFixed(5)}",
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.white.withOpacity(0.35),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Delete button
+          SizedBox(
+            width: double.infinity,
+            child: TextButton(
+              onPressed: onDelete,
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.redAccent.withOpacity(0.08),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(color: Colors.redAccent.withOpacity(0.25)),
+                ),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.delete_outline_rounded,
+                    size: 15,
+                    color: Colors.redAccent,
+                  ),
+                  SizedBox(width: 7),
+                  Text(
+                    "Delete this Maqam",
+                    style: TextStyle(
+                      color: Colors.redAccent,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
