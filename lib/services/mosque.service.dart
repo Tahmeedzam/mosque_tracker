@@ -38,10 +38,12 @@ class MosqueService {
           'max_lng': east,
         },
       );
+
       final results = List<Map<String, dynamic>>.from(response);
+      debugPrint("Supabase returned ${results.length} mosques for bbox");
       return results;
     } catch (e) {
-      debugPrint("fetchMosquesByBbox ERROR: $e");
+      debugPrint("Supabase bbox error: $e");
       return [];
     }
   }

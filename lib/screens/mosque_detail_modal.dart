@@ -293,6 +293,9 @@ class _MosqueDetailModalState extends State<MosqueDetailModal> {
     final currentUserId = Supabase.instance.client.auth.currentUser?.id;
     final isOwner = _mosqueData["added_by"]?.toString() == currentUserId;
 
+    debugPrint("added_by: ${_mosqueData["added_by"]}");
+    debugPrint("currentUser: ${Supabase.instance.client.auth.currentUser?.id}");
+
     Future<void> _deleteMosque() async {
       final confirmed = await showDialog<bool>(
         context: context,

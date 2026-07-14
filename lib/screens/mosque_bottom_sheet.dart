@@ -179,7 +179,7 @@ class _MosqueBottomSheetState extends State<MosqueBottomSheet> {
           ),
         ],
       ),
-      padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
+      padding: const EdgeInsets.fromLTRB(18, 14, 18, 2),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -383,6 +383,7 @@ class _MosqueBottomSheetState extends State<MosqueBottomSheet> {
               ),
             ),
           ),
+          const SizedBox(height: 10),
         ],
       ),
     );
