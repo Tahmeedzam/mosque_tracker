@@ -16,6 +16,7 @@ import 'dart:ui' as ui;
 
 import 'package:mosque_tracker/services/mosque.service.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MapScreen extends StatefulWidget {
@@ -28,6 +29,7 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   bool _isLoadingOverpass = false;
   bool _showVisitedOnly = false;
+  bool _mapReady = false;
 
   final _geofenceService = MosqueGeofenceService();
   double lat = 0.0;
@@ -783,11 +785,13 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   void initState() {
+    super.initState();
+    // Run these in parallel, none block the map from showing
+    Future.wait([mosqueService.loadVisitedMosques()]);
     _getMosqueVisited();
     _getTotalMosque();
     _getMaqamVisited();
     _getCurrentMosqueStatus();
-    super.initState();
   }
 
   @override
@@ -821,6 +825,10 @@ class _MapScreenState extends State<MapScreen> {
       CompassSettings(enabled: false),
     );
 
+    // Mark map as ready immediately — UI shows map right away
+    if (mounted) setState(() => _mapReady = true);
+
+    // Load data in background — doesn't block map from showing
     _getCurrentLocation();
   }
 
@@ -1636,6 +1644,77 @@ class _MapScreenState extends State<MapScreen> {
       backgroundColor: const Color(0xFF0F1A14),
       body: Stack(
         children: [
+          if (!_mapReady)
+            Positioned.fill(
+              child: Shimmer.fromColors(
+                baseColor: const Color(0xFF1B4332),
+                highlightColor: const Color(0xFF2D6A4F),
+                child: Container(
+                  color: const Color(0xFF0F1A14),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Shimmer mosque icon placeholder
+                      Center(
+                        child: Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1B4332),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Shimmer text placeholder
+                      Center(
+                        child: Container(
+                          width: 160,
+                          height: 14,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1B4332),
+                            borderRadius: BorderRadius.circular(7),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Center(
+                        child: Container(
+                          width: 100,
+                          height: 10,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1B4332),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 48),
+
+                      // Shimmer bottom nav placeholder
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: List.generate(
+                            4,
+                            (i) => Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF1B4332),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           MapWidget(
             cameraOptions: CameraOptions(
               center: Point(
