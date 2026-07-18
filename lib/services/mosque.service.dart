@@ -352,6 +352,11 @@ class MosqueService {
     }
   }
 
+  void syncVisitedFromProvider(List<Map<String, dynamic>> visited) {
+    _visitedMosques = visited;
+    _visitedLoaded = true;
+  }
+
   void clearCache() {
     _mosques = [];
     _visitedMosques = [];

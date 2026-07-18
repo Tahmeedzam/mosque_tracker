@@ -3,9 +3,11 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:mosque_tracker/components/blinkingDot.dart';
+import 'package:mosque_tracker/providers/mosque_providers.dart';
 import 'package:mosque_tracker/screens/mosque_bottom_sheet.dart';
 import 'package:mosque_tracker/services/foreground_service_manager.dart';
 import 'package:mosque_tracker/services/geofence.service.dart';
@@ -19,14 +21,15 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class MapScreen extends StatefulWidget {
+class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
 
   @override
-  State<MapScreen> createState() => _MapScreenState();
+  ConsumerState<MapScreen> createState() => _MapScreenState();
 }
 
-class _MapScreenState extends State<MapScreen> {
+class _MapScreenState extends ConsumerState<MapScreen>
+    with WidgetsBindingObserver {
   bool _isLoadingOverpass = false;
   bool _showVisitedOnly = false;
   bool _mapReady = false;
@@ -1632,6 +1635,7 @@ class _MapScreenState extends State<MapScreen> {
             backgroundColor: Color(0xFF2D6A4F),
           ),
         );
+        ref.read(maqamCountProvider.notifier).increment();
       }
     } catch (e) {
       debugPrint("Error adding personal place: $e");
@@ -1790,7 +1794,7 @@ class _MapScreenState extends State<MapScreen> {
                         Text("🕌", style: TextStyle(fontSize: 18)),
                         SizedBox(width: 10),
                         Text(
-                          "${visitedMosque}",
+                          "${ref.watch(visitedCountProvider)}",
                           style: const TextStyle(
                             fontFamily: 'Georgia',
                             fontSize: 15,
@@ -2165,6 +2169,7 @@ class _MapScreenState extends State<MapScreen> {
                               .eq('user_id', userId!);
                           _getMaqamVisited();
                           setState(() => showMaqamSheet = false);
+                          ref.read(maqamCountProvider.notifier).decrement();
                         } catch (e) {
                           debugPrint("Error deleting maqam: $e");
                         }

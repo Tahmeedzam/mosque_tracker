@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mosque_tracker/providers/mosque_providers.dart';
 import 'package:mosque_tracker/screens/mosque_detail_modal.dart';
 import 'package:mosque_tracker/services/badge_service.dart';
 import 'package:mosque_tracker/services/mosque.service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class MosqueBottomSheet extends StatefulWidget {
+class MosqueBottomSheet extends ConsumerStatefulWidget {
   final Map<String, dynamic> mosque;
   final VoidCallback onClose;
   final VoidCallback onVisitChanged; // ✅ NEW: tells the map to refresh markers
@@ -18,10 +20,10 @@ class MosqueBottomSheet extends StatefulWidget {
   });
 
   @override
-  State<MosqueBottomSheet> createState() => _MosqueBottomSheetState();
+  ConsumerState<MosqueBottomSheet> createState() => _MosqueBottomSheetState();
 }
 
-class _MosqueBottomSheetState extends State<MosqueBottomSheet> {
+class _MosqueBottomSheetState extends ConsumerState<MosqueBottomSheet> {
   final supabase = Supabase.instance.client;
   late bool isVisited;
 
@@ -61,11 +63,10 @@ class _MosqueBottomSheetState extends State<MosqueBottomSheet> {
     );
 
     try {
-      final mosqueId = widget.mosque["id"].toString();
-
-      await MosqueService().markMosqueVisited(mosqueId);
+      await ref
+          .read(visitedMosquesProvider.notifier)
+          .markVisited(widget.mosque["id"].toString());
       await BadgeService().grantNewBadge();
-
       if (mounted) {
         setState(() => isVisited = true);
         widget.onVisitChanged();
@@ -128,10 +129,9 @@ class _MosqueBottomSheetState extends State<MosqueBottomSheet> {
     );
 
     try {
-      final mosqueId = widget.mosque["id"].toString();
-
-      await MosqueService().unmarkMosqueVisited(mosqueId);
-
+      await ref
+          .read(visitedMosquesProvider.notifier)
+          .unmarkVisited(widget.mosque["id"].toString());
       if (mounted) {
         setState(() => isVisited = false);
         widget.onVisitChanged();

@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:mosque_tracker/providers/mosque_providers.dart';
 import 'package:mosque_tracker/screens/contact_screen.dart';
 import 'package:mosque_tracker/screens/login_screen.dart';
 import 'package:mosque_tracker/services/auth_service.dart';
 import 'package:mosque_tracker/services/mosque.service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
-
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   final authService = AuthService();
   final _supabase = Supabase.instance.client;
   final mosqueService = MosqueService();
@@ -107,15 +108,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final visited = mosqueService.visitedMosques;
-    final totalVisited = visited.length;
-
-    // Count unique cities from visited mosques
-    final uniqueCities = visited
-        .map((v) => v['mosque_city']?.toString() ?? '')
-        .where((c) => c.isNotEmpty)
-        .toSet()
-        .length;
+    final visited = ref.watch(visitedMosquesProvider);
+    final totalVisited = ref.watch(visitedCountProvider);
+    final uniqueCities = ref.watch(uniqueCitiesProvider);
+    final maqamCount = ref.watch(maqamCountProvider);
 
     Future<void> _handleDeleteAccount() async {
       showDialog(
