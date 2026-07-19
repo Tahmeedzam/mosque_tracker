@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "414897042911",
+    "project_id": "maqaam-1a8fa",
+    "storage_bucket": "maqaam-1a8fa.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:414897042911:android:39f71a0d2ab5b14886406a",
+        "android_client_info": {
+          "package_name": "com.zams.maqaam"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDshECt_gVcnCr1e-0O5yQQmH4Ew2NIiT8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
